@@ -53,19 +53,27 @@ func TerraformSetupBuilder() terraform.SetupFn {
 	return func(ctx context.Context, kube client.Client, mg resource.Managed) (terraform.Setup, error) {
 		ps := terraform.Setup{}
 
-		// ModernManaged exposes GetProviderConfigReference(); the generated MR
-		// types implement this interface — assert at runtime.
-		mmg, ok := mg.(resource.ModernManaged)
-		if !ok {
-			return ps, errors.New(errNoProviderConfig)
+		// The provider config reference is not part of resource.Managed in
+		// crossplane-runtime v2: cluster-scoped (legacy) managed resources
+		// return an untyped reference while namespaced (modern) ones return a
+		// typed reference. Support both.
+		var pcName string
+		switch mr := mg.(type) {
+		case resource.ProviderConfigReferencer:
+			if ref := mr.GetProviderConfigReference(); ref != nil {
+				pcName = ref.Name
+			}
+		case resource.TypedProviderConfigReferencer:
+			if ref := mr.GetProviderConfigReference(); ref != nil {
+				pcName = ref.Name
+			}
 		}
-		configRef := mmg.GetProviderConfigReference()
-		if configRef == nil {
+		if pcName == "" {
 			return ps, errors.New(errNoProviderConfig)
 		}
 
 		pc := &v1beta1.ProviderConfig{}
-		if err := kube.Get(ctx, types.NamespacedName{Name: configRef.Name}, pc); err != nil {
+		if err := kube.Get(ctx, types.NamespacedName{Name: pcName}, pc); err != nil {
 			return ps, errors.Wrap(err, errGetProviderConfig)
 		}
 

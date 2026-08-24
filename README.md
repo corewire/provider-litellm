@@ -4,16 +4,21 @@
 
 ## Managed Resources
 
-| Resource | Description |
-|----------|-------------|
-| `Model` | Model routing configuration (provider, API base, costs, rate limits) |
-| `Team` | Team with budget and model access controls |
-| `TeamMember` / `TeamMemberAdd` | Team membership management |
-| `Organization` / `OrganizationMember` | Organization and member management |
-| `Key` | API key with budget, rate-limit and guardrail configuration |
-| `Credential` | Stored provider credentials |
-| `MCPServer` | Model Context Protocol server |
-| `VectorStore` | Vector store configuration |
+All managed resources are generated from
+[`BerriAI/terraform-provider-litellm`](https://github.com/BerriAI/terraform-provider-litellm)
+v1.98.0.
+
+| API version | Kind | Description |
+|-------------|------|-------------|
+| `litellm.litellm.crossplane.io/v1alpha1` | `Model` | Model routing configuration (provider, API base, costs, rate limits) |
+| `litellm.litellm.crossplane.io/v1alpha1` | `Team` | Team with budget and model access controls |
+| `litellm.litellm.crossplane.io/v1alpha1` | `Organization` | Organization with budget and model access controls |
+| `litellm.litellm.crossplane.io/v1alpha1` | `Key` | API key with budget, rate-limit and guardrail configuration |
+| `litellm.litellm.crossplane.io/v1alpha1` | `Credential` | Stored provider credentials |
+| `team.litellm.crossplane.io/v1alpha1` | `Member` / `MemberAdd` | Team membership management |
+| `organization.litellm.crossplane.io/v1alpha1` | `Member` / `MemberAdd` | Organization membership management |
+| `mcp.litellm.crossplane.io/v1alpha1` | `Server` | Model Context Protocol server |
+| `vector.litellm.crossplane.io/v1alpha1` | `Store` | Vector store configuration |
 
 ## Getting Started
 
@@ -25,7 +30,7 @@ kind: Provider
 metadata:
   name: provider-litellm
 spec:
-  package: xpkg.upbound.io/corewire/provider-litellm:latest
+  package: ghcr.io/corewire/provider-litellm:v0.1.0
 ```
 
 ### Configure
@@ -94,9 +99,10 @@ stringData:
 
 ### Prerequisites
 
-- Go 1.26+
-- Terraform ≤ 1.5.7 (BSL-free)
-- kubectl, kind, up CLI, Crossplane CLI
+- Go 1.27+
+- Docker (with buildx) for building the runtime image and provider package
+- Everything else (Terraform 1.5.7, kubectl, kind, helm, the Crossplane CLI,
+  chainsaw and uptest) is downloaded into `.cache/tools` by the Makefile
 
 ### Code generation
 
@@ -108,17 +114,22 @@ make generate
 ### Build & Test
 
 ```sh
-make build          # compile provider binary
-make test           # run unit tests
-make e2e            # run e2e tests (requires LITELLM_API_BASE + LITELLM_API_KEY)
-golangci-lint run   # lint
+make build              # binaries, runtime image and the .xpkg package
+make test               # run unit tests
+make lint               # run golangci-lint
+make local-deploy       # build and install the provider into a local kind cluster
+make e2e                # run e2e tests (requires LITELLM_API_BASE + LITELLM_API_KEY)
+make generated-lst-check # verify config/generated.lst is up to date
+make schema-diff OLD_PROVIDER_VERSION=1.97.0 # diff the Terraform provider schema
 ```
 
 ### Project structure
 
 ```
 provider-litellm/
-├── apis/v1beta1/        # ProviderConfig types; zz_*.go generated
+├── apis/
+│   ├── v1beta1/         # ProviderConfig types; zz_*.go generated
+│   └── <group>/v1alpha1/ # generated managed resource types
 ├── cmd/
 │   ├── generator/       # Code generator entry point
 │   └── provider/        # Controller manager entry point
@@ -129,9 +140,12 @@ provider-litellm/
 │   ├── features/        # Feature flags
 │   └── version/         # Version info
 ├── examples/            # Usage examples
-├── cluster/test/        # E2E test infrastructure (Chainsaw)
-├── package/             # Crossplane package metadata
-├── Dockerfile
+├── examples-generated/  # Generated usage examples
+├── cluster/
+│   ├── images/          # Runtime image (distroless) build
+│   └── test/            # E2E test infrastructure (Chainsaw)
+├── package/             # Crossplane package metadata and generated CRDs
+├── scripts/             # Schema diff and upstream release tooling
 └── Makefile
 ```
 

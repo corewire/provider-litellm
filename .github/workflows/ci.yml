@@ -15,12 +15,8 @@ permissions:
 env:
   GO_VERSION: '1.27.0'
   GOLANGCI_LINT_VERSION: 'v2.13.1'
-  UP_VERSION: 'v0.38.4'
-  PROVIDER_REPO: provider-litellm
-  MODULE_PATH: github.com/corewire/provider-litellm
-  GHCR_ORG: ghcr.io/corewire
-  XPKG_REGISTRY_ORG: xpkg.upbound.io/corewire
-  IMAGE_NAME: ghcr.io/corewire/provider-litellm
+  XPKG_REG_ORGS: 'ghcr.io/corewire'
+  XPKG_REG_ORGS_NO_PROMOTE: 'ghcr.io/corewire'
 
 jobs:
   detect-noop:
@@ -197,6 +193,7 @@ jobs:
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           submodules: true
+          fetch-depth: 0
 
       - name: Setup Go
         uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5
@@ -205,12 +202,6 @@ jobs:
 
       - name: Setup Docker Buildx
         uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3
-
-      - name: Install Upbound CLI
-        shell: bash
-        run: |
-          curl -sL https://cli.upbound.io | sh
-          echo "${HOME}/.up/bin" >> "${GITHUB_PATH}"
 
       - name: Find Go cache paths
         id: go-cache
@@ -238,7 +229,7 @@ jobs:
       - name: Vendor dependencies
         run: make vendor
 
-      - name: Build provider artifacts
+      - name: Build provider packages
         run: make -j2 build
 
       - name: Log in to GHCR
@@ -249,35 +240,16 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build runtime image
-        uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8 # v6
-        with:
-          context: .
-          load: true
-          tags: ${{ env.IMAGE_NAME }}:${{ github.sha }}
-
-      - name: Publish runtime image
+      - name: Publish provider packages
         if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/release-'))
-        uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8 # v6
-        with:
-          context: .
-          push: true
-          tags: ${{ env.IMAGE_NAME }}:${{ github.sha }}
+        run: make publish BRANCH_NAME=${{ github.ref_name }}
 
-      - name: Export runtime image
-        shell: bash
-        run: |
-          mkdir -p .artifacts
-          docker save "${IMAGE_NAME}:${GITHUB_SHA}" -o .artifacts/provider-litellm-image.tar
-
-      - name: Upload build artifacts
+      - name: Upload provider packages
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
-          name: provider-litellm-build-artifacts
-          path: |
-            .artifacts/provider-litellm-image.tar
-            _output/**
-          if-no-files-found: warn
+          name: provider-litellm-xpkg
+          path: _output/xpkg/**
+          if-no-files-found: error
 
   e2e-tests:
     runs-on: ubuntu-24.04
@@ -290,35 +262,21 @@ jobs:
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           submodules: true
+          fetch-depth: 0
 
       - name: Setup Go
         uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5
         with:
           go-version: ${{ env.GO_VERSION }}
 
-      - name: Setup kubectl
-        uses: azure/setup-kubectl@c0c8b32d33a5244f1e5947304550403b63930415 # v4
-
-      - name: Setup Helm
-        uses: azure/setup-helm@bf6a7d304bc2fdb57e0331155b7ebf2c504acf0a # v4
-
-      - name: Download build artifacts
-        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
-        with:
-          name: provider-litellm-build-artifacts
-          path: .artifacts
-
-      - name: Load runtime image
-        if: hashFiles('.artifacts/provider-litellm-image.tar') != ''
-        run: docker load -i .artifacts/provider-litellm-image.tar
+      - name: Setup Docker Buildx
+        uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3
 
       - name: Vendor dependencies
         run: make vendor
 
       - name: Run e2e tests
         env:
-          PROVIDER_IMAGE: ${{ env.IMAGE_NAME }}:${{ github.sha }}
-          UPTEST_PROVIDER_IMAGE: ${{ env.IMAGE_NAME }}:${{ github.sha }}
           LITELLM_API_BASE: ${{ secrets.LITELLM_API_BASE }}
           LITELLM_API_KEY: ${{ secrets.LITELLM_API_KEY }}
         run: make e2e

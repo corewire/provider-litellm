@@ -47,25 +47,27 @@ GO_SUBDIRS          += cmd internal apis config generate
 # ====================================================================================
 # Setup Kubernetes tools
 
-KUBECTL_VERSION  ?= v1.36.4
-KIND_VERSION      = v0.32.0
-UP_VERSION        = v0.38.4
-UP_CHANNEL        = stable
-UPTEST_VERSION    = v2.2.0
+KUBECTL_VERSION        ?= v1.36.4
+KIND_VERSION            = v0.32.0
+UPTEST_VERSION          = v2.2.0
+CROSSPLANE_CLI_VERSION  = v2.4.0
+CROSSPLANE_VERSION      = 2.4.0
+CROSSPLANE_NAMESPACE    = crossplane-system
+KIND_CLUSTER_NAME      ?= $(PROJECT_NAME)
 -include build/makelib/k8s_tools.mk
 
 # ====================================================================================
 # Setup Images
 
-REGISTRY_ORGS ?= xpkg.upbound.io/corewire
+REGISTRY_ORGS ?= ghcr.io/corewire
 IMAGES = $(PROJECT_NAME)
 -include build/makelib/imagelight.mk
 
 # ====================================================================================
 # Setup XPKG
 
-XPKG_REG_ORGS          ?= xpkg.upbound.io/corewire
-XPKG_REG_ORGS_NO_PROMOTE ?= xpkg.upbound.io/corewire
+XPKG_REG_ORGS          ?= ghcr.io/corewire
+XPKG_REG_ORGS_NO_PROMOTE ?= ghcr.io/corewire
 XPKGS = $(PROJECT_NAME)
 -include build/makelib/xpkg.mk
 
@@ -82,7 +84,7 @@ fallthrough: submodules
 
 xpkg.build.provider-litellm: do.build.images
 
-build.init: $(UP) check-terraform-version $(CROSSPLANE_CLI)
+build.init: check-terraform-version $(CROSSPLANE_CLI)
 
 # ====================================================================================
 # Setup Terraform for fetching provider schema
@@ -193,31 +195,8 @@ generate.done: generated-lst
 
 CHAINSAW_VERSION = 0.2.15
 CHAINSAW         := $(TOOLS_HOST_DIR)/chainsaw-$(CHAINSAW_VERSION)
-CROSSPLANE_VERSION     = 2.4.0
-CROSSPLANE_CLI_VERSION = v2.4.0
-CROSSPLANE_NAMESPACE   = crossplane-system
-CROSSPLANE_CHART_DIR   := $(TOOLS_HOST_DIR)/crossplane-chart-$(CROSSPLANE_VERSION)
-CROSSPLANE_CHART       := $(CROSSPLANE_CHART_DIR)/Chart.yaml
 -include build/makelib/local.xpkg.mk
 -include build/makelib/controlplane.mk
-
-$(CROSSPLANE_CLI):
-	@$(INFO) installing Crossplane CLI $(CROSSPLANE_CLI_VERSION)
-	@rm -rf $(TOOLS_HOST_DIR)/tmp-crossplane-cli
-	@mkdir -p $(dir $(CROSSPLANE_CLI)) $(TOOLS_HOST_DIR)/tmp-crossplane-cli
-	@GOBIN=$(TOOLS_HOST_DIR)/tmp-crossplane-cli go install github.com/crossplane/crossplane/v2/cmd/crank@$(CROSSPLANE_CLI_VERSION)
-	@mv $(TOOLS_HOST_DIR)/tmp-crossplane-cli/crank $(CROSSPLANE_CLI)
-	@rm -rf $(TOOLS_HOST_DIR)/tmp-crossplane-cli
-	@$(OK) installing Crossplane CLI $(CROSSPLANE_CLI_VERSION)
-
-$(CROSSPLANE_CHART):
-	@$(INFO) downloading Crossplane chart $(CROSSPLANE_VERSION)
-	@rm -rf $(CROSSPLANE_CHART_DIR) $(TOOLS_HOST_DIR)/tmp-crossplane-chart
-	@mkdir -p $(CROSSPLANE_CHART_DIR) $(TOOLS_HOST_DIR)/tmp-crossplane-chart
-	@curl -fsSL https://github.com/crossplane/crossplane/archive/refs/tags/v$(CROSSPLANE_VERSION).tar.gz | tar -xz -C $(TOOLS_HOST_DIR)/tmp-crossplane-chart
-	@cp -R $(TOOLS_HOST_DIR)/tmp-crossplane-chart/*/cluster/charts/crossplane/. $(CROSSPLANE_CHART_DIR)/
-	@rm -rf $(TOOLS_HOST_DIR)/tmp-crossplane-chart
-	@$(OK) downloading Crossplane chart $(CROSSPLANE_VERSION)
 
 $(CHAINSAW):
 	@$(INFO) installing chainsaw $(CHAINSAW_VERSION)
@@ -229,15 +208,6 @@ $(CHAINSAW):
 	@chmod +x $(CHAINSAW)
 	@rm $(CHAINSAW).tar.gz
 	@$(OK) installing chainsaw $(CHAINSAW_VERSION)
-
-controlplane.up: $(HELM) $(KUBECTL) $(KIND) $(CROSSPLANE_CHART)
-	@$(INFO) setting up controlplane
-	@$(KIND) get kubeconfig --name $(KIND_CLUSTER_NAME) >/dev/null 2>&1 || $(KIND) create cluster --name=$(KIND_CLUSTER_NAME)
-	@$(KUBECTL) config use-context "kind-$(KIND_CLUSTER_NAME)"
-	@if ! $(HELM) get notes -n $(CROSSPLANE_NAMESPACE) crossplane >/dev/null 2>&1; then \
-		$(HELM) install crossplane --create-namespace --namespace=$(CROSSPLANE_NAMESPACE) \
-			--set image.tag=v$(CROSSPLANE_VERSION) $(CROSSPLANE_CHART_DIR); \
-	fi
 
 UPTEST_EXAMPLE_LIST := $(shell grep -v '^\#' cluster/test/cases.txt | paste -sd ',' -)
 
