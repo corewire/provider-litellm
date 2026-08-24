@@ -1,2 +1,866 @@
 name: BerriAI/litellm
-resources: {}
+resources:
+    litellm_credential:
+        subCategory: ""
+        name: litellm_credential
+        title: ""
+        examples:
+            - name: openai_cred
+              manifest: |-
+                {
+                  "credential_info": {
+                    "provider": "openai",
+                    "purpose": "chat-completions",
+                    "region": "us-east-1"
+                  },
+                  "credential_name": "openai-api-key",
+                  "credential_values": {
+                    "api_key": "${var.openai_api_key}",
+                    "org_id": "${var.openai_org_id}"
+                  },
+                  "model_id": "gpt-4"
+                }
+            - name: anthropic_cred
+              manifest: |-
+                {
+                  "credential_info": {
+                    "provider": "anthropic",
+                    "purpose": "text-generation"
+                  },
+                  "credential_name": "anthropic-api-key",
+                  "credential_values": {
+                    "api_key": "${var.anthropic_api_key}"
+                  }
+                }
+            - name: pinecone_cred
+              manifest: |-
+                {
+                  "credential_info": {
+                    "environment": "production",
+                    "provider": "pinecone",
+                    "region": "us-east-1"
+                  },
+                  "credential_name": "pinecone-production",
+                  "credential_values": {
+                    "api_key": "${var.pinecone_api_key}",
+                    "index_name": "document-embeddings"
+                  }
+                }
+            - name: aws_bedrock
+              manifest: |-
+                {
+                  "credential_info": {
+                    "provider": "aws",
+                    "region": "us-east-1",
+                    "service": "bedrock"
+                  },
+                  "credential_name": "aws-bedrock-cred",
+                  "credential_values": {
+                    "aws_access_key_id": "${var.aws_access_key_id}",
+                    "aws_region": "us-east-1",
+                    "aws_secret_access_key": "${var.aws_secret_access_key}"
+                  }
+                }
+            - name: azure_openai
+              manifest: |-
+                {
+                  "credential_info": {
+                    "provider": "azure",
+                    "service": "openai"
+                  },
+                  "credential_name": "azure-openai-cred",
+                  "credential_values": {
+                    "api_base": "${var.azure_openai_endpoint}",
+                    "api_key": "${var.azure_openai_key}",
+                    "api_version": "2023-12-01-preview"
+                  }
+                }
+        argumentDocs:
+            Sensitive: ', credential_values is still written in plaintext to the state file. Anyone with read access to the state (or state artifacts such as plan files) can recover the configured secrets. Use an encrypted remote backend with tight access controls, and prefer feeding secrets in via variables sourced from a secret manager rather than hardcoding them in configuration.'
+            credential_info: '- (Optional) Map of additional non-sensitive information about the credential.'
+            credential_name: '- (Required) Name of the credential. This will be used as the identifier for the credential.'
+            credential_values: '- (Required, Sensitive) Map of sensitive credential values such as API keys, tokens, etc.'
+            model_id: '- (Optional) Model ID associated with this credential.'
+        importStatements:
+            - terraform import litellm_credential.example "credential-name"
+    litellm_key:
+        subCategory: ""
+        name: litellm_key
+        title: ""
+        examples:
+            - name: example
+              manifest: |-
+                {
+                  "aliases": {
+                    "gpt-3.5-turbo": "chatgpt"
+                  },
+                  "allowed_cache_controls": [
+                    "no-cache",
+                    "max-age=3600"
+                  ],
+                  "blocked": false,
+                  "budget_duration": "monthly",
+                  "config": {
+                    "default_model": "gpt-3.5-turbo"
+                  },
+                  "duration": "30d",
+                  "guardrails": [
+                    "content_filter",
+                    "token_limit"
+                  ],
+                  "key_alias": "prod-key-1",
+                  "max_budget": 100,
+                  "max_parallel_requests": 5,
+                  "metadata": {
+                    "environment": "production"
+                  },
+                  "model_max_budget": {
+                    "gpt-4": 50
+                  },
+                  "model_rpm_limit": {
+                    "gpt-3.5-turbo": 30
+                  },
+                  "model_tpm_limit": {
+                    "gpt-4": 500
+                  },
+                  "models": [
+                    "gpt-3.5-turbo",
+                    "gpt-4"
+                  ],
+                  "permissions": {
+                    "can_create_keys": "true"
+                  },
+                  "rpm_limit": 60,
+                  "soft_budget": 80,
+                  "tags": [
+                    "production",
+                    "api"
+                  ],
+                  "team_id": "team456",
+                  "tpm_limit": 1000,
+                  "user_id": "user123"
+                }
+        argumentDocs:
+            aliases: '- (Optional) Map of model aliases. This allows you to create custom names for models when using this key.'
+            allowed_cache_controls: '- (Optional) List of allowed cache control directives. This can be used to control caching behavior for requests made with this key.'
+            blocked: '- (Optional) Whether this key is blocked. If set to true, the key will be unable to make any requests.'
+            budget_duration: '- (Optional) Duration for the budget (e.g., "monthly", "weekly"). This defines the time period for which the max_budget applies.'
+            config: '- (Optional) Configuration options for this key. This can be used to set key-specific settings.'
+            duration: '- (Optional) Duration for which this key is valid. This sets an expiration time for the key.'
+            guardrails: '- (Optional) List of guardrails applied to this key. This can be used to enforce certain safety or quality checks.'
+            key: '- The generated API key. This is the actual key value that will be used for authentication.'
+            key_alias: '- (Optional) Alias for this key. This provides a human-readable identifier for the key.'
+            max_budget: '- (Optional) Maximum budget for this key. This sets an upper limit on the total spend allowed for this key.'
+            max_parallel_requests: '- (Optional) Maximum number of parallel requests allowed for this key. This helps in controlling concurrent usage.'
+            metadata: '- (Optional) Metadata associated with this key. This can be used to store additional, custom information about the key.'
+            model_max_budget: '- (Optional) Maximum budget per model. This allows setting different budget limits for each model.'
+            model_rpm_limit: '- (Optional) Requests per minute limit per model. This allows setting different RPM limits for each model.'
+            model_tpm_limit: '- (Optional) Tokens per minute limit per model. This allows setting different TPM limits for each model.'
+            models: '- (Optional) List of models that can be used with this key. This restricts the key to only use the specified models.'
+            permissions: '- (Optional) Permissions associated with this key. This defines what actions are allowed with this key.'
+            rpm_limit: '- (Optional) Requests per minute limit for this key. This sets a rate limit based on the number of API calls.'
+            soft_budget: '- (Optional) Soft budget limit for this key. This can be used to set a warning threshold before reaching the max_budget.'
+            spend: '- The current spend for this key. This reflects the total amount spent using this key so far.'
+            tags: '- (Optional) List of tags associated with this key. This can be used for organization and filtering of keys.'
+            team_id: '- (Optional) Team ID associated with this key. This links the key to a specific team in the LiteLLM system.'
+            tpm_limit: '- (Optional) Tokens per minute limit for this key. This sets a rate limit based on the number of tokens processed.'
+            user_id: '- (Optional) User ID associated with this key. This links the key to a specific user in the LiteLLM system.'
+        importStatements: []
+    litellm_mcp_server:
+        subCategory: ""
+        name: litellm_mcp_server
+        title: ""
+        examples:
+            - name: github_server
+              manifest: |-
+                {
+                  "alias": "github",
+                  "auth_type": "bearer",
+                  "description": "GitHub MCP server for repository operations",
+                  "mcp_access_groups": [
+                    "dev_team",
+                    "devops_team"
+                  ],
+                  "server_name": "github-mcp-server",
+                  "transport": "http",
+                  "url": "https://api.github.com/mcp"
+                }
+            - name: zapier_server
+              manifest: |-
+                {
+                  "alias": "zapier",
+                  "auth_type": "bearer",
+                  "description": "Zapier MCP server for workflow automation",
+                  "mcp_access_groups": [
+                    "automation_team",
+                    "marketing_team"
+                  ],
+                  "mcp_info": [
+                    {
+                      "description": "Provides automation tools through Zapier's MCP interface",
+                      "logo_url": "https://zapier.com/assets/images/zapier-logo.png",
+                      "mcp_server_cost_info": [
+                        {
+                          "default_cost_per_query": 0.01,
+                          "tool_name_to_cost_per_query": {
+                            "create_calendar_event": 0.04,
+                            "create_document": 0.03,
+                            "post_to_slack": 0.01,
+                            "send_email": 0.05,
+                            "update_spreadsheet": 0.02
+                          }
+                        }
+                      ],
+                      "server_name": "Zapier Integration Server"
+                    }
+                  ],
+                  "server_name": "zapier-automation",
+                  "spec_version": "2024-11-05",
+                  "transport": "sse",
+                  "url": "https://actions.zapier.com/mcp/sk-xxxxx/sse"
+                }
+            - name: local_dev_server
+              manifest: |-
+                {
+                  "alias": "local-dev",
+                  "args": [
+                    "/opt/mcp-servers/dev-tools/server.py",
+                    "--verbose"
+                  ],
+                  "auth_type": "none",
+                  "command": "python3",
+                  "description": "Local MCP server for development tools",
+                  "env": {
+                    "DEBUG": "true",
+                    "LOG_LEVEL": "info",
+                    "PYTHONPATH": "/opt/mcp-servers/dev-tools",
+                    "WORKSPACE_DIR": "/workspace"
+                  },
+                  "mcp_access_groups": [
+                    "local_developers"
+                  ],
+                  "mcp_info": [
+                    {
+                      "description": "Local development utilities and tools",
+                      "mcp_server_cost_info": [
+                        {
+                          "default_cost_per_query": 0
+                        }
+                      ],
+                      "server_name": "Development Tools"
+                    }
+                  ],
+                  "server_name": "local-development-tools",
+                  "transport": "stdio",
+                  "url": "stdio://local-dev"
+                }
+            - name: enterprise_api_server
+              manifest: |-
+                {
+                  "alias": "enterprise",
+                  "auth_type": "bearer",
+                  "description": "Enterprise API gateway MCP server",
+                  "mcp_access_groups": [
+                    "enterprise_users",
+                    "api_consumers",
+                    "integration_team"
+                  ],
+                  "mcp_info": [
+                    {
+                      "description": "Provides access to enterprise APIs and services",
+                      "logo_url": "https://enterprise.com/logo.png",
+                      "mcp_server_cost_info": [
+                        {
+                          "default_cost_per_query": 0.1,
+                          "tool_name_to_cost_per_query": {
+                            "audit_log_query": 0.3,
+                            "create_user": 0.15,
+                            "generate_report": 0.5,
+                            "query_database": 0.25,
+                            "send_notification": 0.05,
+                            "update_permissions": 0.2
+                          }
+                        }
+                      ],
+                      "server_name": "Enterprise API Gateway"
+                    }
+                  ],
+                  "server_name": "enterprise-api-gateway",
+                  "spec_version": "2024-11-05",
+                  "transport": "http",
+                  "url": "https://api.enterprise.com/mcp/v1"
+                }
+        argumentDocs:
+            alias: '- (Optional) Alias for the MCP server. Used for easier reference.'
+            args: '- (Optional) List of arguments for the command (stdio transport only). Do not pass secrets as arguments; args are shown in plans, stored unencrypted in state, and visible in the server''s process list.'
+            auth_type: '- (Optional) Authentication type. Valid values: none, bearer, basic. Defaults to none.'
+            command: '- (Optional) Command to run for stdio transport.'
+            created_at: '- Timestamp when the server was created.'
+            created_by: '- User who created the server.'
+            description: '- (Optional) Description of the MCP server.'
+            env: '- (Optional, Sensitive) Map of environment variables for the command (stdio transport only). Hidden from plan output but still stored unencrypted in state; secure your state backend when configuring tokens here.'
+            health_check_error: '- Error message from the last health check, if any.'
+            last_health_check: '- Timestamp of the last health check.'
+            mcp_access_groups: '- (Optional) List of access groups that can use this MCP server.'
+            mcp_info.description: '- (Optional) Description in MCP info.'
+            mcp_info.logo_url: '- (Optional) Logo URL for the MCP server.'
+            mcp_info.server_name: '- (Optional) Server name in MCP info.'
+            mcp_server_cost_info.default_cost_per_query: '- (Optional) Default cost per query for all tools.'
+            mcp_server_cost_info.tool_name_to_cost_per_query: '- (Optional) Map of specific tool names to their cost per query.'
+            server_id: '- Unique identifier for the MCP server.'
+            server_name: '- (Required) Name of the MCP server.'
+            spec_version: '- (Optional) MCP specification version. Defaults to 2024-11-05.'
+            status: '- Current status of the MCP server.'
+            transport: '- (Required) Transport type for the MCP server. Valid values: http, sse, stdio.'
+            updated_at: '- Timestamp when the server was last updated.'
+            updated_by: '- User who last updated the server.'
+            url: '- (Required) URL of the MCP server. For stdio transport, use stdio:// prefix.'
+        importStatements:
+            - terraform import litellm_mcp_server.example server-id-here
+    litellm_model:
+        subCategory: ""
+        name: litellm_model
+        title: ""
+        examples:
+            - name: gpt4
+              manifest: |-
+                {
+                  "base_model": "gpt-4",
+                  "custom_llm_provider": "openai",
+                  "input_cost_per_million_tokens": 30,
+                  "mode": "chat",
+                  "model_api_key": "${var.openai_api_key}",
+                  "model_name": "gpt-4-proxy",
+                  "output_cost_per_million_tokens": 60,
+                  "tier": "paid"
+                }
+              references:
+                model_api_key: var.openai_api_key
+            - name: advanced_gpt4
+              manifest: |-
+                {
+                  "api_version": "2023-05-15",
+                  "base_model": "gpt-4",
+                  "custom_llm_provider": "openai",
+                  "input_cost_per_million_tokens": 30,
+                  "merge_reasoning_content_in_choices": true,
+                  "mode": "chat",
+                  "model_api_base": "https://api.openai.com/v1",
+                  "model_api_key": "${var.openai_api_key}",
+                  "model_name": "gpt-4-advanced",
+                  "output_cost_per_million_tokens": 60,
+                  "reasoning_effort": "medium",
+                  "rpm": 1000,
+                  "team_id": "team-123",
+                  "thinking_budget_tokens": 1024,
+                  "thinking_enabled": true,
+                  "tier": "paid",
+                  "tpm": 100000
+                }
+              references:
+                model_api_key: var.openai_api_key
+            - name: bedrock_claude
+              manifest: |-
+                {
+                  "aws_access_key_id": "${var.aws_access_key_id}",
+                  "aws_region_name": "us-east-1",
+                  "aws_role_name": "arn:aws:iam::123456789012:role/LiteLLMCrossAccountRole",
+                  "aws_secret_access_key": "${var.aws_secret_access_key}",
+                  "aws_session_name": "litellm-cross-account-session",
+                  "base_model": "anthropic.claude-3-sonnet-20240229-v1:0",
+                  "custom_llm_provider": "bedrock",
+                  "input_cost_per_million_tokens": 3,
+                  "mode": "chat",
+                  "model_name": "bedrock-claude-proxy",
+                  "output_cost_per_million_tokens": 15,
+                  "tier": "paid"
+                }
+              references:
+                aws_access_key_id: var.aws_access_key_id
+                aws_secret_access_key: var.aws_secret_access_key
+            - name: claude
+              manifest: |-
+                {
+                  "base_model": "claude-3-sonnet-20240229",
+                  "custom_llm_provider": "anthropic",
+                  "input_cost_per_million_tokens": 3,
+                  "mode": "chat",
+                  "model_api_key": "${var.anthropic_api_key}",
+                  "model_name": "claude-proxy",
+                  "output_cost_per_million_tokens": 15,
+                  "tier": "paid"
+                }
+              references:
+                model_api_key: var.anthropic_api_key
+            - name: azure_gpt4
+              manifest: |-
+                {
+                  "api_version": "2023-12-01-preview",
+                  "base_model": "gpt-4",
+                  "custom_llm_provider": "azure",
+                  "input_cost_per_million_tokens": 30,
+                  "mode": "chat",
+                  "model_api_base": "${var.azure_openai_endpoint}",
+                  "model_api_key": "${var.azure_openai_key}",
+                  "model_name": "azure-gpt4-proxy",
+                  "output_cost_per_million_tokens": 60,
+                  "tier": "paid"
+                }
+              references:
+                model_api_base: var.azure_openai_endpoint
+                model_api_key: var.azure_openai_key
+            - name: with_additional
+              manifest: |-
+                {
+                  "additional_litellm_params": {
+                    "additional_drop_params": "[\"reasoningEffort\"]",
+                    "complex_config": "{\"nested\": {\"value\": 42}}",
+                    "max_context": "16384",
+                    "note": "for testing",
+                    "scale": "0.75",
+                    "use_fine_tune": "true"
+                  },
+                  "base_model": "gpt-4",
+                  "custom_llm_provider": "openai",
+                  "mode": "chat",
+                  "model_api_key": "${var.openai_api_key}",
+                  "model_name": "custom-model"
+                }
+              references:
+                model_api_key: var.openai_api_key
+        argumentDocs:
+            '"16384"': -> 16384, "0.75" -> 0.75)
+            '"true"': / "false" (strings) -> boolean true / false
+            '[': or {) are parsed as JSON objects/arrays
+            additional_drop_params: is provided as a JSON array string, it specifies parameters to remove from the final litellm_params before sending to the API
+            additional_litellm_params: '- (Optional) map(string). A map of arbitrary additional parameters that will be merged into the litellm_params object sent to the LiteLLM API. This is intended for provider-specific or experimental options not exposed as dedicated arguments.'
+            api_version: '- (Optional) string. The API version to use for the model provider.'
+            aws_access_key_id: '- (Optional) string (Sensitive). AWS access key ID for AWS-based models.'
+            aws_region_name: '- (Optional) string. AWS region name for AWS-based models.'
+            aws_role_name: '- (Optional) string (Sensitive). AWS IAM role name for cross-account access scenarios.'
+            aws_secret_access_key: '- (Optional) string (Sensitive). AWS secret access key for AWS-based models. As with model_api_key, the value is stored in plaintext in the state file; prefer a litellm_credential referenced via litellm_credential_name and secure your state backend.'
+            aws_session_name: '- (Optional) string (Sensitive). AWS session name for cross-account access scenarios.'
+            base_model: '- (Required) string. The actual model identifier from the provider (e.g., "gpt-4", "claude-2").'
+            custom_llm_provider: '- (Required) string. The LLM provider for this model (e.g., "openai", "anthropic", "azure", "bedrock").'
+            id: '- The ID of the model configuration.'
+            input_cost_per_million_tokens: '- (Optional) float. Cost per million input tokens. The provider converts this to a per-token cost sent to the API.'
+            input_cost_per_pixel: '- (Optional) float. Cost applied per input pixel for models that charge by image size.'
+            input_cost_per_second: '- (Optional) float. Cost applied per input second for audio/transcription models.'
+            litellm_credential_name: '- (Optional) string. Name of a LiteLLM credential to use for this model.'
+            litellm_params: payload sent to the API.
+            merge_reasoning_content_in_choices: '- (Optional) boolean. When set to true, merges reasoning content into the model''s choices.'
+            mode: '- (Optional) string. The intended use of the model. Valid values are:'
+            model_api_base: '- (Optional) string. The base URL for the model provider''s API.'
+            model_api_key: '- (Optional) string (Sensitive). The API key for the underlying model provider. Sensitive attributes are hidden from Terraform output but still stored in plaintext in the state file; prefer storing provider secrets in a litellm_credential and referencing it via litellm_credential_name, and secure your state backend.'
+            model_name: '- (Required) string. The name of the model configuration used to identify the model in API calls.'
+            output_cost_per_million_tokens: '- (Optional) float. Cost per million output tokens. The provider converts this to a per-token cost sent to the API.'
+            output_cost_per_pixel: '- (Optional) float. Cost applied per output pixel for image-generation models.'
+            output_cost_per_second: '- (Optional) float. Cost applied per output second for audio/transcription models.'
+            pricing_base_model: '- (Optional) string. A pricing key fed to model_info.base_model independently of routing. When set, litellm_params.model still routes via base_model, but LiteLLM looks up cost against this key. Useful when the routing/deployment name differs from the cost-map key — e.g. an Azure deployment routed as azure/gpt-4.1 whose real tier is Data Zone: set pricing_base_model = "us/gpt-4.1-2025-04-14" so it is billed at the Data Zone rate. When unset, base_model drives pricing as before.'
+            reasoning_effort: '- (Optional) string. Configures the model''s reasoning effort level. Valid values are:'
+            rpm: '- (Optional) integer. Requests per minute limit for this model.'
+            team_id: '- (Optional) string. Associate the model with a specific team.'
+            thinking_budget_tokens: '- (Optional) integer. Sets the token budget for the model''s thinking capability. Default: 1024. Note: this field is only relevant when thinking_enabled = true.'
+            thinking_enabled: '- (Optional) boolean. Enables the model''s thinking capability. Default: false.'
+            tier: '- (Optional) string. The usage tier for this model. Valid values are "free" or "paid". Default: "free".'
+            tpm: '- (Optional) integer. Tokens per minute limit for this model.'
+            vertex_credentials: '- (Optional) string. Vertex credentials (JSON string or path depending on your setup).'
+            vertex_location: '- (Optional) string. Vertex AI location (e.g., us-central1).'
+            vertex_project: '- (Optional) string. Vertex AI project id (for custom_llm_provider = "vertex").'
+        importStatements:
+            - terraform import litellm_model.gpt4 <model-id>
+    litellm_team:
+        subCategory: ""
+        name: litellm_team
+        title: ""
+        examples:
+            - name: engineering
+              manifest: |-
+                {
+                  "max_budget": 1000,
+                  "models": [
+                    "gpt-4-proxy",
+                    "claude-2"
+                  ],
+                  "team_alias": "engineering-team"
+                }
+            - name: advanced_team
+              manifest: |-
+                {
+                  "blocked": false,
+                  "budget_duration": "1mo",
+                  "max_budget": 1000,
+                  "metadata": {
+                    "cost_center": "R\u0026D-001",
+                    "department": "Engineering",
+                    "project": "AI Research"
+                  },
+                  "models": [
+                    "gpt-4-proxy",
+                    "claude-2",
+                    "gpt-3.5-turbo"
+                  ],
+                  "organization_id": "org_123456",
+                  "rpm_limit": 5000,
+                  "team_alias": "ai-research-team",
+                  "team_member_permissions": [
+                    "create_key",
+                    "delete_key",
+                    "view_spend",
+                    "edit_team"
+                  ],
+                  "tpm_limit": 500000
+                }
+            - name: model_dependent_team
+              manifest: |-
+                {
+                  "budget_duration": "1mo",
+                  "max_budget": 500,
+                  "models": [
+                    "${litellm_model.gpt4.model_name}",
+                    "${litellm_model.claude.model_name}"
+                  ],
+                  "team_alias": "model-users",
+                  "team_member_permissions": [
+                    "view_spend"
+                  ]
+                }
+              references:
+                models: litellm_model.gpt4.model_name
+              dependencies:
+                litellm_model.claude: |-
+                    {
+                      "base_model": "claude-3-sonnet-20240229",
+                      "custom_llm_provider": "anthropic",
+                      "model_api_key": "${var.anthropic_api_key}",
+                      "model_name": "claude-proxy"
+                    }
+                litellm_model.gpt4: |-
+                    {
+                      "base_model": "gpt-4",
+                      "custom_llm_provider": "openai",
+                      "model_api_key": "${var.openai_api_key}",
+                      "model_name": "gpt-4-proxy"
+                    }
+        argumentDocs:
+            blocked: '- (Optional) Whether the team is blocked from making requests. Default is false.'
+            budget_duration: '- (Optional) Duration for the budget cycle. Valid values are:'
+            id: '- The unique identifier for the team.'
+            max_budget: '- (Optional) Maximum budget allocated to the team.'
+            metadata: '- (Optional) A map of metadata key-value pairs associated with the team.'
+            models: '- (Optional) List of model names that this team can access.'
+            organization_id: '- (Optional) The ID of the organization this team belongs to.'
+            rpm_limit: '- (Optional) Team-wide requests per minute limit.'
+            team_alias: '- (Required) A human-readable identifier for the team.'
+            team_member_permissions: '- (Optional) List of permissions granted to team members. This controls what actions team members can perform within the team context.'
+            tpm_limit: '- (Optional) Team-wide tokens per minute limit.'
+        importStatements:
+            - terraform import litellm_team.engineering <team-id>
+    litellm_team_member:
+        subCategory: ""
+        name: litellm_team_member
+        title: ""
+        examples:
+            - name: engineer
+              manifest: |-
+                {
+                  "max_budget_in_team": 200,
+                  "role": "user",
+                  "team_id": "${litellm_team.engineering.id}",
+                  "user_email": "engineer@example.com",
+                  "user_id": "user_3"
+                }
+              references:
+                team_id: litellm_team.engineering.id
+        argumentDocs:
+            id: '- The unique identifier for the team member configuration. This is typically a composite of the team_id and user_id.'
+            max_budget_in_team: '- (Optional) Maximum budget allocated to this team member within the team''s budget.'
+            role: '- (Required) The role of the team member. Valid values are:'
+            team_id: '- (Required) The ID of the team this member belongs to.'
+            user_email: '- (Required) Email address of the user.'
+            user_id: '- (Required) Unique identifier for the user.'
+        importStatements:
+            - terraform import litellm_team_member.engineer <team_id>:<user_id>
+    litellm_team_member_add:
+        subCategory: ""
+        name: litellm_team_member_add
+        title: ""
+        examples:
+            - name: example
+              manifest: |-
+                {
+                  "max_budget_in_team": 100,
+                  "member": [
+                    {
+                      "role": "admin",
+                      "user_id": "user-456"
+                    },
+                    {
+                      "role": "user",
+                      "user_email": "user@example.com"
+                    }
+                  ],
+                  "team_id": "team-123"
+                }
+            - name: dev_team_members
+              manifest: |-
+                {
+                  "max_budget_in_team": 100,
+                  "member": [
+                    {
+                      "role": "admin",
+                      "user_email": "team-lead@company.com"
+                    },
+                    {
+                      "role": "user",
+                      "user_email": "developer1@company.com"
+                    },
+                    {
+                      "role": "user",
+                      "user_email": "developer2@company.com"
+                    },
+                    {
+                      "role": "user",
+                      "user_id": "existing-user-123"
+                    }
+                  ],
+                  "team_id": "${litellm_team.development.id}"
+                }
+              references:
+                team_id: litellm_team.development.id
+              dependencies:
+                litellm_team.development: |-
+                    {
+                      "max_budget": 500,
+                      "models": [
+                        "gpt-4",
+                        "gpt-3.5-turbo"
+                      ],
+                      "team_alias": "development-team",
+                      "team_member_permissions": [
+                        "create_key",
+                        "view_spend"
+                      ]
+                    }
+            - name: dynamic_example
+              manifest: |-
+                {
+                  "dynamic": {
+                    "member": [
+                      {
+                        "content": [
+                          {
+                            "role": "${member.value.role}",
+                            "user_email": "${lookup(member.value, \"user_email\", null)}",
+                            "user_id": "${lookup(member.value, \"user_id\", null)}"
+                          }
+                        ],
+                        "for_each": "${local.team_members}"
+                      }
+                    ]
+                  },
+                  "max_budget_in_team": 200,
+                  "team_id": "team-456"
+                }
+              references:
+                dynamic.content.role: member.value.role
+                dynamic.for_each: local.team_members
+            - name: budget_example
+              manifest: |-
+                {
+                  "max_budget_in_team": 100,
+                  "member": [
+                    {
+                      "role": "admin",
+                      "user_email": "user1@example.com"
+                    },
+                    {
+                      "role": "user",
+                      "user_email": "user2@example.com"
+                    },
+                    {
+                      "role": "user",
+                      "user_id": "user123"
+                    }
+                  ],
+                  "team_id": "${litellm_team.example.id}"
+                }
+              references:
+                team_id: litellm_team.example.id
+        argumentDocs:
+            /team/member_add: endpoint
+            /team/member_delete: endpoint
+            /team/member_update: endpoint (preserves member identity)
+            max_budget_in_team: '- (Optional) The maximum budget allocated for the team members.'
+            member: '- (Required) One or more member blocks defining team members. Each block supports:'
+            role: '- (Required) The role of the user in the team. Must be one of: "admin" or "user".'
+            team_id: '- (Required) The ID of the team to add members to.'
+            user_email: '- (Optional) The email of the user to add to the team.'
+            user_id: '- (Optional) The ID of the user to add to the team.'
+        importStatements:
+            - terraform import litellm_team_member_add.example team-123:user-456
+    litellm_vector_store:
+        subCategory: ""
+        name: litellm_vector_store
+        title: ""
+        examples:
+            - name: bedrock_kb
+              manifest: |-
+                {
+                  "custom_llm_provider": "bedrock",
+                  "litellm_credential_name": "${litellm_credential.bedrock_cred.credential_name}",
+                  "litellm_params": {
+                    "vector_store_id": "T37J8R4WTM"
+                  },
+                  "vector_store_description": "Bedrock vector store for the LiteLLM website knowledgebase",
+                  "vector_store_metadata": {
+                    "source": "https://www.litellm.com/docs"
+                  },
+                  "vector_store_name": "bedrock-litellm-website-knowledgebase"
+                }
+              references:
+                litellm_credential_name: litellm_credential.bedrock_cred.credential_name
+              dependencies:
+                litellm_credential.bedrock_cred: |-
+                    {
+                      "credential_info": {
+                        "provider": "bedrock",
+                        "region": "us-east-1"
+                      },
+                      "credential_name": "bedrock-knowledge-base",
+                      "credential_values": {
+                        "aws_access_key_id": "${var.aws_access_key_id}",
+                        "aws_region": "us-east-1",
+                        "aws_secret_access_key": "${var.aws_secret_access_key}"
+                      }
+                    }
+            - name: openai_store
+              manifest: |-
+                {
+                  "custom_llm_provider": "openai",
+                  "litellm_credential_name": "${litellm_credential.openai_cred.credential_name}",
+                  "litellm_params": {
+                    "vector_store_id": "vs_687ae3b2439881918b433cb99d10662e"
+                  },
+                  "vector_store_description": "OpenAI vector store for document search",
+                  "vector_store_metadata": {
+                    "environment": "production",
+                    "purpose": "file-search"
+                  },
+                  "vector_store_name": "openai-knowledge-base"
+                }
+              references:
+                litellm_credential_name: litellm_credential.openai_cred.credential_name
+              dependencies:
+                litellm_credential.openai_cred: |-
+                    {
+                      "credential_info": {
+                        "provider": "openai"
+                      },
+                      "credential_name": "openai-vector-store",
+                      "credential_values": {
+                        "api_key": "${var.openai_api_key}"
+                      }
+                    }
+            - name: azure_store
+              manifest: |-
+                {
+                  "custom_llm_provider": "azure",
+                  "litellm_credential_name": "${litellm_credential.azure_cred.credential_name}",
+                  "litellm_params": {
+                    "vector_store_id": "vs_azure_example_id"
+                  },
+                  "vector_store_description": "Azure vector store for enterprise search",
+                  "vector_store_metadata": {
+                    "environment": "production",
+                    "team": "enterprise"
+                  },
+                  "vector_store_name": "azure-knowledge-base"
+                }
+              references:
+                litellm_credential_name: litellm_credential.azure_cred.credential_name
+              dependencies:
+                litellm_credential.azure_cred: |-
+                    {
+                      "credential_info": {
+                        "provider": "azure"
+                      },
+                      "credential_name": "azure-vector-store",
+                      "credential_values": {
+                        "api_base": "${var.azure_openai_endpoint}",
+                        "api_key": "${var.azure_openai_key}",
+                        "api_version": "2023-12-01-preview"
+                      }
+                    }
+            - name: vertex_rag
+              manifest: |-
+                {
+                  "custom_llm_provider": "vertex_ai",
+                  "litellm_credential_name": "${litellm_credential.vertex_cred.credential_name}",
+                  "litellm_params": {
+                    "vector_store_id": "6917529027641081856"
+                  },
+                  "vector_store_description": "Vertex AI RAG Engine for enterprise knowledge",
+                  "vector_store_metadata": {
+                    "environment": "production",
+                    "project": "your-gcp-project"
+                  },
+                  "vector_store_name": "vertex-rag-corpus"
+                }
+              references:
+                litellm_credential_name: litellm_credential.vertex_cred.credential_name
+              dependencies:
+                litellm_credential.vertex_cred: |-
+                    {
+                      "credential_info": {
+                        "project": "your-gcp-project",
+                        "provider": "vertex_ai"
+                      },
+                      "credential_name": "vertex-rag-engine",
+                      "credential_values": {
+                        "service_account_key": "${var.gcp_service_account_key}"
+                      }
+                    }
+            - name: pgvector_store
+              manifest: |-
+                {
+                  "custom_llm_provider": "pgvector",
+                  "litellm_credential_name": "${litellm_credential.pgvector_cred.credential_name}",
+                  "litellm_params": {
+                    "api_base": "https://your-pgvector-host.com"
+                  },
+                  "vector_store_description": "PostgreSQL vector store with pgvector extension",
+                  "vector_store_metadata": {
+                    "database": "vector_db",
+                    "environment": "production",
+                    "table": "embeddings"
+                  },
+                  "vector_store_name": "postgres-vector-store"
+                }
+              references:
+                litellm_credential_name: litellm_credential.pgvector_cred.credential_name
+              dependencies:
+                litellm_credential.pgvector_cred: |-
+                    {
+                      "credential_info": {
+                        "host": "your-pgvector-host.com",
+                        "provider": "pgvector"
+                      },
+                      "credential_name": "pgvector-store",
+                      "credential_values": {
+                        "api_base": "https://your-pgvector-host.com",
+                        "api_key": "${var.pgvector_api_key}"
+                      }
+                    }
+        argumentDocs:
+            created_at: '- Timestamp when the vector store was created.'
+            custom_llm_provider: '- (Required) The vector store provider. Supported values: "bedrock", "openai", "azure", "vertex_ai", "pgvector".'
+            litellm_credential_name: '- (Optional) Name of the LiteLLM credential to use for authentication.'
+            litellm_params: '- (Optional, Sensitive) Map of additional parameters specific to the vector store provider. Do not put API keys or other secrets here; this map is stored unencrypted in state. Store secrets in a litellm_credential and reference it via litellm_credential_name.'
+            updated_at: '- Timestamp when the vector store was last updated.'
+            vector_store_description: '- (Optional) Description of the vector store.'
+            vector_store_id: '- The unique identifier of the vector store.'
+            vector_store_metadata: '- (Optional) Map of metadata associated with the vector store.'
+            vector_store_name: '- (Required) Name of the vector store.'
+        importStatements:
+            - terraform import litellm_vector_store.example "vector-store-id"

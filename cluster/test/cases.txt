@@ -1,3 +1,6 @@
-# LiteLLM e2e test cases
-# Add paths to test case directories here, one per line
-# Example: examples/model/model.yaml
+# LiteLLM e2e test cases, one example manifest per line. Consumed by the
+# `uptest` target in the Makefile.
+examples/litellm/model.yaml
+examples/litellm/team.yaml
+examples/litellm/key.yaml
+examples/mcp/server.yaml

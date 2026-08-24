@@ -42,6 +42,10 @@ var ExternalNameConfigs = map[string]ujconfig.ExternalName{
 	// litellm_organization_member manages organization membership.
 	"litellm_organization_member": ujconfig.IdentifierFromProvider,
 
+	// litellm_organization_member_add manages the add operation of an
+	// organization member.
+	"litellm_organization_member_add": ujconfig.IdentifierFromProvider,
+
 	// litellm_key is identified by the key value returned on create.
 	"litellm_key": ujconfig.IdentifierFromProvider,
 

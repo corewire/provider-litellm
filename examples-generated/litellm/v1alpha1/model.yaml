@@ -1,0 +1,21 @@
+apiVersion: litellm.litellm.crossplane.io/v1alpha1
+kind: Model
+metadata:
+  annotations:
+    meta.upbound.io/example-id: litellm/v1alpha1/model
+  labels:
+    testing.upbound.io/example-name: gpt4
+  name: gpt4
+spec:
+  forProvider:
+    baseModel: gpt-4
+    customLlmProvider: openai
+    inputCostPerMillionTokens: 30
+    mode: chat
+    modelApiKeySecretRef:
+      key: example-key
+      name: example-secret
+      namespace: upbound-system
+    modelName: gpt-4-proxy
+    outputCostPerMillionTokens: 60
+    tier: paid

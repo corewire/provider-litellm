@@ -13,7 +13,7 @@ TERRAFORM_VERSION_VALID := $(shell [ "$(TERRAFORM_VERSION)" = "`printf "$(TERRAF
 export TERRAFORM_PROVIDER_SOURCE  ?= BerriAI/litellm
 export TERRAFORM_PROVIDER_REPO    ?= https://github.com/BerriAI/terraform-provider-litellm
 # renovate: datasource=github-releases depName=BerriAI/terraform-provider-litellm
-export TERRAFORM_PROVIDER_VERSION ?= 0.4.0
+export TERRAFORM_PROVIDER_VERSION ?= 1.98.0
 export TERRAFORM_PROVIDER_DOWNLOAD_NAME ?= terraform-provider-litellm
 export TERRAFORM_PROVIDER_DOWNLOAD_URL_PREFIX ?= ${TERRAFORM_PROVIDER_REPO}/releases/download/v$(TERRAFORM_PROVIDER_VERSION)
 export TERRAFORM_NATIVE_PROVIDER_BINARY ?= terraform-provider-litellm_v$(TERRAFORM_PROVIDER_VERSION)
@@ -21,7 +21,7 @@ export TERRAFORM_DOCS_PATH        ?= docs/resources
 export TERRAFORM_FILE_MIRROR      ?= .terraform.d/plugins
 export TERRAFORM_FILE_MIRROR_REPO ?= ${TERRAFORM_FILE_MIRROR}/registry.terraform.io
 
-export GOLANGCILINT_VERSION ?= 2.12.2
+export GOLANGCILINT_VERSION ?= 2.13.1
 
 PLATFORMS ?= linux_amd64 linux_arm64
 
@@ -38,16 +38,16 @@ PLATFORMS ?= linux_amd64 linux_arm64
 NPROCS ?= 1
 GO_TEST_PARALLEL := $(shell echo $$(( $(NPROCS) / 2 )))
 
-GO_REQUIRED_VERSION ?= 1.24
+GO_REQUIRED_VERSION ?= 1.27.0
 GO_STATIC_PACKAGES  = $(GO_PROJECT)/cmd/provider $(GO_PROJECT)/cmd/generator
 GO_LDFLAGS          += -X $(GO_PROJECT)/internal/version.Version=$(VERSION)
-GO_SUBDIRS          += cmd internal apis config
+GO_SUBDIRS          += cmd internal apis config generate
 -include build/makelib/golang.mk
 
 # ====================================================================================
 # Setup Kubernetes tools
 
-KUBECTL_VERSION  ?= v1.32.2
+KUBECTL_VERSION  ?= v1.36.4
 KIND_VERSION      = v0.32.0
 UP_VERSION        = v0.38.4
 UP_CHANNEL        = stable
@@ -140,7 +140,18 @@ pull-docs:
 	fi
 	@git -C "$(WORK_DIR)/$(TERRAFORM_PROVIDER_SOURCE)" sparse-checkout set "$(TERRAFORM_DOCS_PATH)"
 
-generate.init: $(TERRAFORM_PROVIDER_SCHEMA) pull-docs
+# The upjet code generator shells out to goimports, so it has to be on PATH
+# before `go generate` runs.
+GOIMPORTS := $(TOOLS_HOST_DIR)/goimports
+export PATH := $(TOOLS_HOST_DIR):$(PATH)
+
+$(GOIMPORTS):
+	@$(INFO) installing goimports
+	@mkdir -p $(TOOLS_HOST_DIR)
+	@GOBIN=$(TOOLS_HOST_DIR) go install golang.org/x/tools/cmd/goimports || $(FAIL)
+	@$(OK) installing goimports
+
+generate.init: $(TERRAFORM_PROVIDER_SCHEMA) pull-docs $(GOIMPORTS)
 
 .PHONY: $(TERRAFORM_PROVIDER_SCHEMA) pull-docs check-terraform-version
 
@@ -182,8 +193,8 @@ generate.done: generated-lst
 
 CHAINSAW_VERSION = 0.2.15
 CHAINSAW         := $(TOOLS_HOST_DIR)/chainsaw-$(CHAINSAW_VERSION)
-CROSSPLANE_VERSION     = 2.0.2
-CROSSPLANE_CLI_VERSION = v2.0.2
+CROSSPLANE_VERSION     = 2.4.0
+CROSSPLANE_CLI_VERSION = v2.4.0
 CROSSPLANE_NAMESPACE   = crossplane-system
 CROSSPLANE_CHART_DIR   := $(TOOLS_HOST_DIR)/crossplane-chart-$(CROSSPLANE_VERSION)
 CROSSPLANE_CHART       := $(CROSSPLANE_CHART_DIR)/Chart.yaml
@@ -248,10 +259,10 @@ e2e: local-deploy uptest
 # Compare the current schema.json against a schema from a specific provider version.
 # Downloads the old provider binary, generates its schema, and diffs the two.
 # Usage:
-#   make schema-diff OLD_PROVIDER_VERSION=0.3.0
+#   make schema-diff OLD_PROVIDER_VERSION=1.0.0
 schema-diff: $(TERRAFORM)
 	@if [ -z "$(OLD_PROVIDER_VERSION)" ]; then \
-		echo "Error: OLD_PROVIDER_VERSION is required. Usage: make schema-diff OLD_PROVIDER_VERSION=0.3.0"; \
+		echo "Error: OLD_PROVIDER_VERSION is required. Usage: make schema-diff OLD_PROVIDER_VERSION=1.0.0"; \
 		exit 1; \
 	fi
 	@$(INFO) Comparing provider schema $(OLD_PROVIDER_VERSION) vs $(TERRAFORM_PROVIDER_VERSION)

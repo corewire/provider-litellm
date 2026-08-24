@@ -1,0 +1,47 @@
+apiVersion: litellm.litellm.crossplane.io/v1alpha1
+kind: Key
+metadata:
+  annotations:
+    meta.upbound.io/example-id: litellm/v1alpha1/key
+  labels:
+    testing.upbound.io/example-name: example
+  name: example
+spec:
+  forProvider:
+    aliases:
+      gpt-3.5-turbo: chatgpt
+    allowedCacheControls:
+    - no-cache
+    - max-age=3600
+    blocked: false
+    budgetDuration: monthly
+    config:
+      default_model: gpt-3.5-turbo
+    duration: 30d
+    guardrails:
+    - content_filter
+    - token_limit
+    keyAlias: prod-key-1
+    maxBudget: 100
+    maxParallelRequests: 5
+    metadata:
+      environment: production
+    modelMaxBudget:
+      gpt-4: 50
+    modelRpmLimit:
+      gpt-3.5-turbo: 30
+    modelTpmLimit:
+      gpt-4: 500
+    models:
+    - gpt-3.5-turbo
+    - gpt-4
+    permissions:
+      can_create_keys: "true"
+    rpmLimit: 60
+    softBudget: 80
+    tags:
+    - production
+    - api
+    teamId: team456
+    tpmLimit: 1000
+    userId: user123

@@ -2,13 +2,14 @@
 #
 # GENERATED FILE - DO NOT EDIT. Regenerate with 'make generated-lst'
 # (also run as part of 'make generate'). The source of truth is
-# config.ExternalNameConfigs in config/external_name.go.
+# config.ExternalNameConfigs in config/externalname.go.
 litellm_credential
 litellm_key
 litellm_mcp_server
 litellm_model
 litellm_organization
 litellm_organization_member
+litellm_organization_member_add
 litellm_team
 litellm_team_member
 litellm_team_member_add

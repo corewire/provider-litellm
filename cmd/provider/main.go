@@ -17,6 +17,7 @@ limitations under the License.
 package main
 
 import (
+	"context"
 	"io"
 	"os"
 	"path/filepath"
@@ -26,24 +27,31 @@ import (
 	xpcontroller "github.com/crossplane/crossplane-runtime/v2/pkg/controller"
 	"github.com/crossplane/crossplane-runtime/v2/pkg/errors"
 	"github.com/crossplane/crossplane-runtime/v2/pkg/feature"
+	"github.com/crossplane/crossplane-runtime/v2/pkg/gate"
 	"github.com/crossplane/crossplane-runtime/v2/pkg/logging"
 	"github.com/crossplane/crossplane-runtime/v2/pkg/ratelimiter"
+	"github.com/crossplane/crossplane-runtime/v2/pkg/reconciler/customresourcesgate"
 	"github.com/crossplane/crossplane-runtime/v2/pkg/reconciler/managed"
 	"github.com/crossplane/crossplane-runtime/v2/pkg/statemetrics"
 	tjcontroller "github.com/crossplane/upjet/v2/pkg/controller"
+	"github.com/crossplane/upjet/v2/pkg/controller/conversion"
 	"github.com/crossplane/upjet/v2/pkg/terraform"
+	authv1 "k8s.io/api/authorization/v1"
 	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/client-go/tools/leaderelection/resourcelock"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/cache"
 	ctrlconfig "sigs.k8s.io/controller-runtime/pkg/config"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
+	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/metrics"
 	metricsserver "sigs.k8s.io/controller-runtime/pkg/metrics/server"
 	"sigs.k8s.io/controller-runtime/pkg/webhook"
 
-	"github.com/corewire/provider-litellm/apis/v1beta1"
+	"github.com/corewire/provider-litellm/apis"
 	"github.com/corewire/provider-litellm/config"
+	resolverapis "github.com/corewire/provider-litellm/internal/apis"
 	"github.com/corewire/provider-litellm/internal/clients"
 	internalcontroller "github.com/corewire/provider-litellm/internal/controller"
 	"github.com/corewire/provider-litellm/internal/features"
@@ -133,7 +141,8 @@ func main() {
 		RenewDeadline:              func() *time.Duration { d := 50 * time.Second; return &d }(),
 	})
 	kingpin.FatalIfError(err, "Cannot create controller manager")
-	kingpin.FatalIfError(v1beta1.AddToScheme(mgr.GetScheme()), "Cannot add LiteLLM APIs to scheme")
+	kingpin.FatalIfError(apis.AddToScheme(mgr.GetScheme()), "Cannot add LiteLLM APIs to scheme")
+	kingpin.FatalIfError(resolverapis.BuildScheme(apis.AddToSchemes), "Cannot register the LiteLLM APIs with the API resolver's runtime scheme")
 	kingpin.FatalIfError(apiextensionsv1.AddToScheme(mgr.GetScheme()), "Cannot add api-extensions APIs to scheme")
 
 	metricRecorder := managed.NewMRMetricRecorder()
@@ -176,6 +185,57 @@ func main() {
 		PollJitter:            pollJitter,
 	}
 
-	kingpin.FatalIfError(internalcontroller.Setup(mgr, o), "Cannot setup controllers")
+	// The managed resource controllers are only started once their CRDs are
+	// established, so that a single missing CRD does not tear down the manager.
+	canSafeStart, err := canWatchCRD(mgr)
+	kingpin.FatalIfError(err, "SafeStart precheck failed")
+	if canSafeStart {
+		o.Gate = new(gate.Gate[schema.GroupVersionKind])
+		kingpin.FatalIfError(customresourcesgate.Setup(mgr, o.Options), "Cannot setup CRD gate")
+		kingpin.FatalIfError(internalcontroller.SetupGated(mgr, o), "Cannot setup LiteLLM controllers")
+	} else {
+		log.Info("Provider has missing RBAC permissions for watching CRDs, controller SafeStart capability will be disabled")
+		kingpin.FatalIfError(internalcontroller.Setup(mgr, o), "Cannot setup LiteLLM controllers")
+	}
+
+	// The CRD conversion webhooks are served by every replica, not only by the
+	// leader, so they are registered independently of the controllers. They are
+	// only registered when Crossplane supplied the TLS server certificates.
+	if *certsDir != "" {
+		kingpin.FatalIfError(internalcontroller.SetupWebhookWithManager(mgr), "Cannot setup LiteLLM conversion webhooks")
+	} else {
+		log.Info("No TLS certificates directory configured, CRD conversion webhooks are disabled")
+	}
+
+	kingpin.FatalIfError(conversion.RegisterConversions(o.Provider, nil, mgr.GetScheme()), "Cannot initialize the webhook conversion registry")
 	kingpin.FatalIfError(errors.Wrap(mgr.Start(ctrl.SetupSignalHandler()), "cannot start controller manager"), "Cannot start manager")
+}
+
+// canWatchCRD reports whether the provider has the RBAC permissions required to
+// watch CustomResourceDefinitions, which is a precondition for the SafeStart
+// (CRD gate) capability.
+func canWatchCRD(mgr manager.Manager) (bool, error) {
+	ctx := context.Background()
+	if err := authv1.AddToScheme(mgr.GetScheme()); err != nil {
+		return false, err
+	}
+	verbs := []string{"get", "list", "watch"}
+	for _, verb := range verbs {
+		sar := &authv1.SelfSubjectAccessReview{
+			Spec: authv1.SelfSubjectAccessReviewSpec{
+				ResourceAttributes: &authv1.ResourceAttributes{
+					Group:    "apiextensions.k8s.io",
+					Resource: "customresourcedefinitions",
+					Verb:     verb,
+				},
+			},
+		}
+		if err := mgr.GetClient().Create(ctx, sar); err != nil {
+			return false, errors.Wrapf(err, "unable to perform RBAC check for verb %q on CustomResourceDefinitions", verb)
+		}
+		if !sar.Status.Allowed {
+			return false, nil
+		}
+	}
+	return true, nil
 }

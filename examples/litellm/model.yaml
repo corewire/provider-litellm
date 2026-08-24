@@ -1,0 +1,23 @@
+apiVersion: litellm.litellm.crossplane.io/v1alpha1
+kind: Model
+metadata:
+  annotations:
+    meta.upbound.io/example-id: litellm/v1alpha1/model
+  labels:
+    testing.upbound.io/example-name: gpt4
+  name: gpt4
+spec:
+  forProvider:
+    modelName: gpt-4-proxy
+    customLlmProvider: openai
+    baseModel: gpt-4
+    mode: chat
+    tier: paid
+    inputCostPerMillionTokens: 30
+    outputCostPerMillionTokens: 60
+    modelApiKeySecretRef:
+      key: model-api-key
+      name: litellm-model-credentials
+      namespace: crossplane-system
+  providerConfigRef:
+    name: default

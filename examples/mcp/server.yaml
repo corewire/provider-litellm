@@ -1,0 +1,18 @@
+apiVersion: mcp.litellm.crossplane.io/v1alpha1
+kind: Server
+metadata:
+  annotations:
+    meta.upbound.io/example-id: mcp/v1alpha1/server
+  labels:
+    testing.upbound.io/example-name: github_server
+  name: github-server
+spec:
+  forProvider:
+    serverName: github-mcp-server
+    alias: github
+    description: GitHub MCP server for repository operations
+    transport: http
+    authType: bearer
+    url: https://api.github.com/mcp
+  providerConfigRef:
+    name: default

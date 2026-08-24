@@ -1,0 +1,15 @@
+apiVersion: litellm.litellm.crossplane.io/v1alpha1
+kind: Team
+metadata:
+  annotations:
+    meta.upbound.io/example-id: litellm/v1alpha1/team
+  labels:
+    testing.upbound.io/example-name: engineering
+  name: engineering
+spec:
+  forProvider:
+    maxBudget: 1000
+    models:
+    - gpt-4-proxy
+    - claude-2
+    teamAlias: engineering-team

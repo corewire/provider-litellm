@@ -33,7 +33,10 @@ limitations under the License.
 //go:generate bash -c "find ../cmd/provider -type d -maxdepth 1 -mindepth 1 -empty -delete"
 
 // Generate provider metadata from Terraform docs.
-//go:generate go run github.com/crossplane/upjet/v2/cmd/scraper -n ${TERRAFORM_PROVIDER_SOURCE} -r ../.work/${TERRAFORM_PROVIDER_SOURCE}/${TERRAFORM_DOCS_PATH} -o ../config/provider-metadata.yaml --prelude-xpath "//text()[contains(., \"page_title\")]"
+// The LiteLLM documents carry no registry front matter (no page_title /
+// description / subcategory keys), so the prelude is anchored on the leading
+// level-one heading instead of the default front-matter XPath.
+//go:generate go run github.com/crossplane/upjet/v2/cmd/scraper -n ${TERRAFORM_PROVIDER_SOURCE} -r ../.work/${TERRAFORM_PROVIDER_SOURCE}/${TERRAFORM_DOCS_PATH} -o ../config/provider-metadata.yaml --prelude-xpath "//h1"
 
 // Run Upjet generator
 //go:generate go run ../cmd/generator/main.go ..
@@ -58,4 +61,8 @@ import (
 	_ "github.com/crossplane/upjet/v2/cmd/scraper"
 
 	_ "github.com/crossplane/upjet/v2/cmd/resolver"
+
+	// goimports is invoked by the upjet generator pipeline on the generated
+	// packages, so it has to be a tracked tool dependency.
+	_ "golang.org/x/tools/cmd/goimports"
 )

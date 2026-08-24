@@ -38,7 +38,7 @@ const header = `# Terraform resources exposed as managed resources by this provi
 #
 # GENERATED FILE - DO NOT EDIT. Regenerate with 'make generated-lst'
 # (also run as part of 'make generate'). The source of truth is
-# config.ExternalNameConfigs in config/external_name.go.
+# config.ExternalNameConfigs in config/externalname.go.
 `
 
 func generatedList() string {
