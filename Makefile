@@ -272,4 +272,24 @@ schema-version-diff:
 	./scripts/version_diff.py config/generated.lst "$(WORK_DIR)/schema.json.$${PREV_PROVIDER_VERSION}" config/schema.json
 	@$(OK) Checking for native state schema version changes
 
-.PHONY: uptest chainsaw local-deploy e2e submodules cobertura go.cachedir run schema-diff schema-version-diff
+
+# ---------------------------------------------------------------------------
+# Tilt local development
+# ---------------------------------------------------------------------------
+
+# Starts the local kind cluster (if not already present) and launches Tilt.
+# Requires: kind, kubectl, helm, tilt
+tilt-up:
+	@$(INFO) starting local kind cluster and Tilt dev environment
+	@kind get clusters 2>/dev/null | grep -q "^$(KIND_CLUSTER_NAME)$$" || \
+		kind create cluster --name $(KIND_CLUSTER_NAME) --wait 5m
+	@tilt up
+
+# Tears down the local Tilt session and the kind cluster.
+tilt-down:
+	@$(INFO) tearing down local dev environment
+	@tilt down || true
+	@kind delete cluster --name $(KIND_CLUSTER_NAME) || true
+	@$(OK) local dev environment removed
+
+.PHONY: uptest chainsaw local-deploy e2e submodules cobertura go.cachedir run schema-diff schema-version-diff tilt-up tilt-down

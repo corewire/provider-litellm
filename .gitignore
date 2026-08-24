@@ -31,3 +31,6 @@ config/schema.json.local
 
 # Build tools cache
 bin/
+
+# Tilt local development overrides (generated from tilt-settings.yaml.example)
+tilt-settings.yaml

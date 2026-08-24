@@ -101,8 +101,33 @@ stringData:
 
 - Go 1.27+
 - Docker (with buildx) for building the runtime image and provider package
+- [Tilt](https://tilt.dev/) for the local development loop
 - Everything else (Terraform 1.5.7, kubectl, kind, helm, the Crossplane CLI,
   chainsaw and uptest) is downloaded into `.cache/tools` by the Makefile
+
+### Local development with Tilt
+
+Tilt provides a fast, hot-reloading local dev loop:
+- rebuilds the provider binary on every Go source change
+- loads the new image into the local kind cluster without a full registry push
+- deploys Crossplane, the in-cluster LiteLLM instance, the `litellm-credentials`
+  Secret, and the `ProviderConfig` automatically
+- streams provider logs in the Tilt UI
+
+```sh
+# Start the local kind cluster and the Tilt dev environment
+make tilt-up
+
+# Open the Tilt UI
+open http://localhost:10350
+
+# Tear everything down when done
+make tilt-down
+```
+
+To override defaults (image repo, LiteLLM master key, etc.), copy
+`tilt-settings.yaml.example` to `tilt-settings.yaml` (git-ignored) and adjust
+the values.
 
 ### Code generation
 
@@ -118,7 +143,7 @@ make build              # binaries, runtime image and the .xpkg package
 make test               # run unit tests
 make lint               # run golangci-lint
 make local-deploy       # build and install the provider into a local kind cluster
-make e2e                # run e2e tests (requires LITELLM_API_BASE + LITELLM_API_KEY)
+make e2e                # run the full chainsaw e2e suite (deploys LiteLLM in-cluster)
 make generated-lst-check # verify config/generated.lst is up to date
 make schema-diff OLD_PROVIDER_VERSION=1.97.0 # diff the Terraform provider schema
 ```
