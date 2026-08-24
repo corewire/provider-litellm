@@ -44,3 +44,12 @@ make e2e
 ```bash
 golangci-lint run
 ```
+
+## Agent skill: building an upjet provider
+
+`.github/skills/upjet-provider/` documents the full reference architecture for an
+upjet-based Crossplane provider (repository layout, build system, `config/`
+patterns, generation pipeline, testing, and CI/schema-diff automation), derived
+from `crossplane-contrib/provider-keycloak`. Point an AI agent at it when
+extending this provider or bootstrapping a new one for another Terraform
+provider.
