@@ -1,0 +1,65 @@
+apiVersion: chainsaw.kyverno.io/v1alpha1
+kind: Test
+metadata:
+  name: organizationmemberadd
+spec:
+  timeouts:
+    apply: 5m
+    assert: 10m
+    delete: 5m
+  steps:
+  - name: create-organization
+    try:
+    - apply:
+        file: organization.yaml
+    - assert:
+        file: organization-assert.yaml
+  - name: create-organizationmemberadd
+    try:
+    - script:
+        content: |
+          set -euo pipefail
+          ORGANIZATION_ID=""
+          for _ in $(seq 1 60); do
+            ORGANIZATION_ID="$(kubectl get organizations.litellm.crossplane.io e2e-organization-for-member-add -o jsonpath='{.status.atProvider.id}' 2>/dev/null || true)"
+            if [ -n "${ORGANIZATION_ID}" ]; then
+              break
+            fi
+            sleep 5
+          done
+          test -n "${ORGANIZATION_ID}"
+          cat <<EOF | kubectl apply -f -
+          apiVersion: litellm.crossplane.io/v1alpha1
+          kind: OrganizationMemberAdd
+          metadata:
+            name: e2e-organizationmemberadd
+          spec:
+            forProvider:
+              organizationId: "${ORGANIZATION_ID}"
+              member:
+              - userId: user-org-add-1
+                userEmail: org-add-e2e@example.com
+                role: user
+            providerConfigRef:
+              name: default
+          EOF
+    - assert:
+        file: organizationmemberadd-assert.yaml
+  - name: update-organizationmemberadd
+    try:
+    - patch:
+        file: organizationmemberadd-patch.yaml
+    - assert:
+        file: organizationmemberadd-updated-assert.yaml
+  - name: delete-organizationmemberadd
+    try:
+    - delete:
+        file: organizationmemberadd-delete.yaml
+    - error:
+        file: organizationmemberadd-assert.yaml
+  - name: delete-organization
+    try:
+    - delete:
+        file: organization.yaml
+    - error:
+        file: organization-assert.yaml

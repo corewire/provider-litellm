@@ -1,0 +1,32 @@
+apiVersion: chainsaw.kyverno.io/v1alpha1
+kind: Test
+metadata:
+  name: model
+spec:
+  timeouts:
+    apply: 5m
+    assert: 10m
+    delete: 5m
+  steps:
+  - name: create-prerequisites
+    try:
+    - apply:
+        file: model-secret.yaml
+  - name: create-model
+    try:
+    - apply:
+        file: model.yaml
+    - assert:
+        file: model-assert.yaml
+  - name: update-model
+    try:
+    - patch:
+        file: model-patch.yaml
+    - assert:
+        file: model-updated-assert.yaml
+  - name: delete-model
+    try:
+    - delete:
+        file: model.yaml
+    - error:
+        file: model-assert.yaml

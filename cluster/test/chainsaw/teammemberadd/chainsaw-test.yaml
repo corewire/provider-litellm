@@ -1,0 +1,66 @@
+apiVersion: chainsaw.kyverno.io/v1alpha1
+kind: Test
+metadata:
+  name: teammemberadd
+spec:
+  timeouts:
+    apply: 5m
+    assert: 10m
+    delete: 5m
+  steps:
+  - name: create-team
+    try:
+    - apply:
+        file: team.yaml
+    - assert:
+        file: team-assert.yaml
+  - name: create-teammemberadd
+    try:
+    - script:
+        content: |
+          set -euo pipefail
+          TEAM_ID=""
+          for _ in $(seq 1 60); do
+            TEAM_ID="$(kubectl get teams.litellm.crossplane.io e2e-team-for-member-add -o jsonpath='{.status.atProvider.id}' 2>/dev/null || true)"
+            if [ -n "${TEAM_ID}" ]; then
+              break
+            fi
+            sleep 5
+          done
+          test -n "${TEAM_ID}"
+          cat <<EOF | kubectl apply -f -
+          apiVersion: litellm.crossplane.io/v1alpha1
+          kind: TeamMemberAdd
+          metadata:
+            name: e2e-teammemberadd
+          spec:
+            forProvider:
+              teamId: "${TEAM_ID}"
+              maxBudgetInTeam: 10
+              member:
+              - userId: user-e2e-add-1
+                userEmail: e2e-add@example.com
+                role: user
+            providerConfigRef:
+              name: default
+          EOF
+    - assert:
+        file: teammemberadd-assert.yaml
+  - name: update-teammemberadd
+    try:
+    - patch:
+        file: teammemberadd-patch.yaml
+    - assert:
+        file: teammemberadd-updated-assert.yaml
+  - name: delete-teammemberadd
+    try:
+    - delete:
+        file: teammemberadd-delete.yaml
+    - error:
+        file: teammemberadd-assert.yaml
+  - name: delete-team
+    try:
+    - delete:
+        file: team.yaml
+    - error:
+        file: team-assert.yaml

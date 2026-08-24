@@ -1,6 +1,11 @@
-# LiteLLM e2e test cases, one example manifest per line. Consumed by the
-# `uptest` target in the Makefile.
-examples/litellm/model.yaml
-examples/litellm/team.yaml
-examples/litellm/key.yaml
-examples/litellm/mcpserver.yaml
+cluster/test/chainsaw/credential
+cluster/test/chainsaw/key
+cluster/test/chainsaw/mcpserver
+cluster/test/chainsaw/model
+cluster/test/chainsaw/organization
+cluster/test/chainsaw/organizationmember
+cluster/test/chainsaw/organizationmemberadd
+cluster/test/chainsaw/team
+cluster/test/chainsaw/teammember
+cluster/test/chainsaw/teammemberadd
+cluster/test/chainsaw/vectorstore

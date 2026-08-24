@@ -1,0 +1,19 @@
+apiVersion: litellm.crossplane.io/v1alpha1
+kind: Model
+metadata:
+  name: e2e-key-model
+spec:
+  forProvider:
+    modelName: fake-gpt-4-key-e2e
+    customLlmProvider: openai
+    baseModel: gpt-4
+    mode: chat
+    tier: paid
+    inputCostPerMillionTokens: 30
+    outputCostPerMillionTokens: 60
+    modelApiKeySecretRef:
+      name: e2e-key-model-secret
+      namespace: upbound-system
+      key: api-key
+  providerConfigRef:
+    name: default

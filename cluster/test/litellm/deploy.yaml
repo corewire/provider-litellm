@@ -1,0 +1,94 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: litellm
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: litellm-config
+  namespace: litellm
+data:
+  config.yaml: |
+    model_list: []
+    general_settings:
+      master_key: "sk-e2e-master-key"
+      database_connection_pool_limit: 10
+    litellm_settings:
+      drop_params: true
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: litellm
+  namespace: litellm
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: litellm
+  template:
+    metadata:
+      labels:
+        app: litellm
+    spec:
+      containers:
+      - name: litellm
+        image: ghcr.io/berriai/litellm:main-stable
+        args:
+        - "--config"
+        - "/app/config.yaml"
+        - "--port"
+        - "4000"
+        - "--num_workers"
+        - "1"
+        env:
+        - name: LITELLM_MASTER_KEY
+          value: "sk-e2e-master-key"
+        - name: STORE_MODEL_IN_DB
+          value: "False"
+        ports:
+        - containerPort: 4000
+        volumeMounts:
+        - name: config
+          mountPath: /app/config.yaml
+          subPath: config.yaml
+        readinessProbe:
+          httpGet:
+            path: /health/liveliness
+            port: 4000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          failureThreshold: 18
+        livenessProbe:
+          httpGet:
+            path: /health/liveliness
+            port: 4000
+          initialDelaySeconds: 60
+          periodSeconds: 15
+          failureThreshold: 6
+        resources:
+          requests:
+            cpu: "200m"
+            memory: "512Mi"
+          limits:
+            cpu: "1"
+            memory: "1Gi"
+      volumes:
+      - name: config
+        configMap:
+          name: litellm-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: litellm
+  namespace: litellm
+spec:
+  selector:
+    app: litellm
+  ports:
+  - port: 4000
+    targetPort: 4000
+  type: ClusterIP

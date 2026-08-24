@@ -1,0 +1,12 @@
+apiVersion: litellm.crossplane.io/v1alpha1
+kind: VectorStore
+metadata:
+  name: e2e-vectorstore
+spec:
+  forProvider:
+    customLlmProvider: openai
+    litellmCredentialName: e2e-vectorstore-credential
+    vectorStoreName: e2e-vectorstore
+    vectorStoreDescription: e2e vector store
+  providerConfigRef:
+    name: default

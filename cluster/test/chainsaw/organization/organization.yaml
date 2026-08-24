@@ -1,0 +1,12 @@
+apiVersion: litellm.crossplane.io/v1alpha1
+kind: Organization
+metadata:
+  name: e2e-organization
+spec:
+  forProvider:
+    organizationAlias: e2e-org
+    maxBudget: 2000
+    models:
+    - fake-gpt-4-organization-e2e
+  providerConfigRef:
+    name: default

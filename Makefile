@@ -218,13 +218,19 @@ uptest: $(UPTEST) $(KUBECTL) $(CHAINSAW) $(CROSSPLANE_CLI)
 		--setup-script=cluster/test/setup.sh --default-conditions="Test" --default-timeout=2400s || $(FAIL)
 	@$(OK) running automated tests
 
+chainsaw: $(CHAINSAW) $(KUBECTL)
+	@$(INFO) running chainsaw e2e tests
+	@cluster/test/setup.sh
+	@$(CHAINSAW) test --config cluster/test/chainsaw-config.yaml cluster/test/chainsaw/ || $(FAIL)
+	@$(OK) running chainsaw e2e tests
+
 local-deploy: build controlplane.up local.xpkg.deploy.provider.$(PROJECT_NAME)
 	@$(INFO) running locally built provider
 	@$(KUBECTL) wait crd providers.pkg.crossplane.io --for=create --timeout 5m
 	@$(KUBECTL) wait provider.pkg $(PROJECT_NAME) --for condition=Healthy --for condition=Installed --for=create --timeout 5m
 	@$(OK) running locally built provider
 
-e2e: local-deploy uptest
+e2e: local-deploy chainsaw
 
 # Compare the current schema.json against a schema from a specific provider version.
 # Downloads the old provider binary, generates its schema, and diffs the two.
@@ -266,4 +272,4 @@ schema-version-diff:
 	./scripts/version_diff.py config/generated.lst "$(WORK_DIR)/schema.json.$${PREV_PROVIDER_VERSION}" config/schema.json
 	@$(OK) Checking for native state schema version changes
 
-.PHONY: uptest local-deploy e2e submodules cobertura go.cachedir run schema-diff schema-version-diff
+.PHONY: uptest chainsaw local-deploy e2e submodules cobertura go.cachedir run schema-diff schema-version-diff

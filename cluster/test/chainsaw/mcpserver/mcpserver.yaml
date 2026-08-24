@@ -1,0 +1,13 @@
+apiVersion: litellm.crossplane.io/v1alpha1
+kind: McpServer
+metadata:
+  name: e2e-mcpserver
+spec:
+  forProvider:
+    serverName: e2e-mcp
+    alias: e2e
+    transport: http
+    authType: none
+    url: http://example.com/mcp
+  providerConfigRef:
+    name: default

@@ -1,0 +1,10 @@
+apiVersion: litellm.crossplane.io/v1alpha1
+kind: Team
+metadata:
+  name: e2e-team-for-member-add
+spec:
+  forProvider:
+    teamAlias: e2e-team-for-member-add
+    maxBudget: 100
+  providerConfigRef:
+    name: default

@@ -1,0 +1,13 @@
+apiVersion: litellm.crossplane.io/v1alpha1
+kind: Model
+metadata:
+  name: e2e-model
+spec:
+  forProvider:
+    outputCostPerMillionTokens: 70
+status:
+  conditions:
+  - type: Ready
+    status: "True"
+  - type: Synced
+    status: "True"
