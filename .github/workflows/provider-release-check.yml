@@ -76,7 +76,7 @@ jobs:
 
       - name: Setup Go
         if: steps.mode.outputs.dry_run != 'true'
-        uses: actions/setup-go@d60b41a563a30eb0a619e2a4f53c2bfedcd17e07 # v5
+        uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5
         with:
           go-version: ${{ env.GO_VERSION }}
 
