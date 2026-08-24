@@ -3,4 +3,4 @@
 examples/litellm/model.yaml
 examples/litellm/team.yaml
 examples/litellm/key.yaml
-examples/mcp/server.yaml
+examples/litellm/mcpserver.yaml

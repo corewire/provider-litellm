@@ -25,6 +25,15 @@ func (l *KeyList) GetItems() []resource.Managed {
 	return items
 }
 
+// GetItems of this McpServerList.
+func (l *McpServerList) GetItems() []resource.Managed {
+	items := make([]resource.Managed, len(l.Items))
+	for i := range l.Items {
+		items[i] = &l.Items[i]
+	}
+	return items
+}
+
 // GetItems of this ModelList.
 func (l *ModelList) GetItems() []resource.Managed {
 	items := make([]resource.Managed, len(l.Items))
@@ -43,8 +52,53 @@ func (l *OrganizationList) GetItems() []resource.Managed {
 	return items
 }
 
+// GetItems of this OrganizationMemberAddList.
+func (l *OrganizationMemberAddList) GetItems() []resource.Managed {
+	items := make([]resource.Managed, len(l.Items))
+	for i := range l.Items {
+		items[i] = &l.Items[i]
+	}
+	return items
+}
+
+// GetItems of this OrganizationMemberList.
+func (l *OrganizationMemberList) GetItems() []resource.Managed {
+	items := make([]resource.Managed, len(l.Items))
+	for i := range l.Items {
+		items[i] = &l.Items[i]
+	}
+	return items
+}
+
 // GetItems of this TeamList.
 func (l *TeamList) GetItems() []resource.Managed {
+	items := make([]resource.Managed, len(l.Items))
+	for i := range l.Items {
+		items[i] = &l.Items[i]
+	}
+	return items
+}
+
+// GetItems of this TeamMemberAddList.
+func (l *TeamMemberAddList) GetItems() []resource.Managed {
+	items := make([]resource.Managed, len(l.Items))
+	for i := range l.Items {
+		items[i] = &l.Items[i]
+	}
+	return items
+}
+
+// GetItems of this TeamMemberList.
+func (l *TeamMemberList) GetItems() []resource.Managed {
+	items := make([]resource.Managed, len(l.Items))
+	for i := range l.Items {
+		items[i] = &l.Items[i]
+	}
+	return items
+}
+
+// GetItems of this VectorStoreList.
+func (l *VectorStoreList) GetItems() []resource.Managed {
 	items := make([]resource.Managed, len(l.Items))
 	for i := range l.Items {
 		items[i] = &l.Items[i]

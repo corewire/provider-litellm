@@ -20,10 +20,12 @@ package config
 import (
 	// Note(turkenh): we are importing this to embed provider schema document
 	_ "embed"
+	"strings"
 
 	litellmProvider "github.com/BerriAI/terraform-provider-litellm/litellm"
 	ujconfig "github.com/crossplane/upjet/v2/pkg/config"
 	conversiontfjson "github.com/crossplane/upjet/v2/pkg/types/conversion/tfjson"
+	"github.com/crossplane/upjet/v2/pkg/types/name"
 	tfjson "github.com/hashicorp/terraform-json"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/pkg/errors"
@@ -83,6 +85,7 @@ func GetProvider(generationProvider bool) (*ujconfig.Provider, error) {
 		ujconfig.WithTerraformProvider(p),
 		ujconfig.WithFeaturesPackage("internal/features"),
 		ujconfig.WithDefaultResourceOptions(
+			RootGroupConfiguration(),
 			ExternalNameConfigurations(),
 		),
 		ujconfig.WithRootGroup(rootGroup),
@@ -96,4 +99,15 @@ func GetProvider(generationProvider bool) (*ujconfig.Provider, error) {
 
 	pc.ConfigureResources()
 	return pc, nil
+}
+
+// RootGroupConfiguration places every resource in the root API group
+// (litellm.crossplane.io) instead of the per-resource-prefix subgroups upjet
+// derives by default. The kind is the camel-cased Terraform resource name
+// without the provider prefix, e.g. litellm_team_member => TeamMember.
+func RootGroupConfiguration() ujconfig.ResourceOption {
+	return func(r *ujconfig.Resource) {
+		r.ShortGroup = ""
+		r.Kind = name.NewFromSnake(strings.TrimPrefix(r.Name, resourcePrefix+"_")).Camel
+	}
 }

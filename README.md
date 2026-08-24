@@ -10,15 +10,15 @@ v1.98.0.
 
 | API version | Kind | Description |
 |-------------|------|-------------|
-| `litellm.litellm.crossplane.io/v1alpha1` | `Model` | Model routing configuration (provider, API base, costs, rate limits) |
-| `litellm.litellm.crossplane.io/v1alpha1` | `Team` | Team with budget and model access controls |
-| `litellm.litellm.crossplane.io/v1alpha1` | `Organization` | Organization with budget and model access controls |
-| `litellm.litellm.crossplane.io/v1alpha1` | `Key` | API key with budget, rate-limit and guardrail configuration |
-| `litellm.litellm.crossplane.io/v1alpha1` | `Credential` | Stored provider credentials |
-| `team.litellm.crossplane.io/v1alpha1` | `Member` / `MemberAdd` | Team membership management |
-| `organization.litellm.crossplane.io/v1alpha1` | `Member` / `MemberAdd` | Organization membership management |
-| `mcp.litellm.crossplane.io/v1alpha1` | `Server` | Model Context Protocol server |
-| `vector.litellm.crossplane.io/v1alpha1` | `Store` | Vector store configuration |
+| `litellm.crossplane.io/v1alpha1` | `Model` | Model routing configuration (provider, API base, costs, rate limits) |
+| `litellm.crossplane.io/v1alpha1` | `Team` | Team with budget and model access controls |
+| `litellm.crossplane.io/v1alpha1` | `Organization` | Organization with budget and model access controls |
+| `litellm.crossplane.io/v1alpha1` | `Key` | API key with budget, rate-limit and guardrail configuration |
+| `litellm.crossplane.io/v1alpha1` | `Credential` | Stored provider credentials |
+| `litellm.crossplane.io/v1alpha1` | `TeamMember` / `TeamMemberAdd` | Team membership management |
+| `litellm.crossplane.io/v1alpha1` | `OrganizationMember` / `OrganizationMemberAdd` | Organization membership management |
+| `litellm.crossplane.io/v1alpha1` | `McpServer` | Model Context Protocol server |
+| `litellm.crossplane.io/v1alpha1` | `VectorStore` | Vector store configuration |
 
 ## Getting Started
 

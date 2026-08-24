@@ -11,24 +11,16 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 
 	v1alpha1 "github.com/corewire/provider-litellm/apis/litellm/v1alpha1"
-	v1alpha1mcp "github.com/corewire/provider-litellm/apis/mcp/v1alpha1"
-	v1alpha1organization "github.com/corewire/provider-litellm/apis/organization/v1alpha1"
-	v1alpha1team "github.com/corewire/provider-litellm/apis/team/v1alpha1"
 	v1alpha1apis "github.com/corewire/provider-litellm/apis/v1alpha1"
 	v1beta1 "github.com/corewire/provider-litellm/apis/v1beta1"
-	v1alpha1vector "github.com/corewire/provider-litellm/apis/vector/v1alpha1"
 )
 
 func init() {
 	// Register the types with the Scheme so the components can map objects to GroupVersionKinds and back
 	AddToSchemes = append(AddToSchemes,
 		v1alpha1.SchemeBuilder.AddToScheme,
-		v1alpha1mcp.SchemeBuilder.AddToScheme,
-		v1alpha1organization.SchemeBuilder.AddToScheme,
-		v1alpha1team.SchemeBuilder.AddToScheme,
 		v1alpha1apis.SchemeBuilder.AddToScheme,
 		v1beta1.SchemeBuilder.AddToScheme,
-		v1alpha1vector.SchemeBuilder.AddToScheme,
 	)
 }
 

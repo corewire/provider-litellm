@@ -13,10 +13,28 @@ func (tr *Credential) Hub() {}
 func (tr *Key) Hub() {}
 
 // Hub marks this type as a conversion hub.
+func (tr *McpServer) Hub() {}
+
+// Hub marks this type as a conversion hub.
 func (tr *Model) Hub() {}
 
 // Hub marks this type as a conversion hub.
 func (tr *Organization) Hub() {}
 
 // Hub marks this type as a conversion hub.
+func (tr *OrganizationMember) Hub() {}
+
+// Hub marks this type as a conversion hub.
+func (tr *OrganizationMemberAdd) Hub() {}
+
+// Hub marks this type as a conversion hub.
 func (tr *Team) Hub() {}
+
+// Hub marks this type as a conversion hub.
+func (tr *TeamMember) Hub() {}
+
+// Hub marks this type as a conversion hub.
+func (tr *TeamMemberAdd) Hub() {}
+
+// Hub marks this type as a conversion hub.
+func (tr *VectorStore) Hub() {}

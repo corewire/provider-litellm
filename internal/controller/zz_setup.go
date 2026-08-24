@@ -11,16 +11,16 @@ import (
 
 	credential "github.com/corewire/provider-litellm/internal/controller/litellm/credential"
 	key "github.com/corewire/provider-litellm/internal/controller/litellm/key"
+	mcpserver "github.com/corewire/provider-litellm/internal/controller/litellm/mcpserver"
 	model "github.com/corewire/provider-litellm/internal/controller/litellm/model"
 	organization "github.com/corewire/provider-litellm/internal/controller/litellm/organization"
+	organizationmember "github.com/corewire/provider-litellm/internal/controller/litellm/organizationmember"
+	organizationmemberadd "github.com/corewire/provider-litellm/internal/controller/litellm/organizationmemberadd"
 	team "github.com/corewire/provider-litellm/internal/controller/litellm/team"
-	server "github.com/corewire/provider-litellm/internal/controller/mcp/server"
-	member "github.com/corewire/provider-litellm/internal/controller/organization/member"
-	memberadd "github.com/corewire/provider-litellm/internal/controller/organization/memberadd"
+	teammember "github.com/corewire/provider-litellm/internal/controller/litellm/teammember"
+	teammemberadd "github.com/corewire/provider-litellm/internal/controller/litellm/teammemberadd"
+	vectorstore "github.com/corewire/provider-litellm/internal/controller/litellm/vectorstore"
 	providerconfig "github.com/corewire/provider-litellm/internal/controller/providerconfig"
-	memberteam "github.com/corewire/provider-litellm/internal/controller/team/member"
-	memberaddteam "github.com/corewire/provider-litellm/internal/controller/team/memberadd"
-	store "github.com/corewire/provider-litellm/internal/controller/vector/store"
 )
 
 // Setup creates all controllers with the supplied logger and adds them to
@@ -29,16 +29,16 @@ func Setup(mgr ctrl.Manager, o controller.Options) error {
 	for _, setup := range []func(ctrl.Manager, controller.Options) error{
 		credential.Setup,
 		key.Setup,
+		mcpserver.Setup,
 		model.Setup,
 		organization.Setup,
+		organizationmember.Setup,
+		organizationmemberadd.Setup,
 		team.Setup,
-		server.Setup,
-		member.Setup,
-		memberadd.Setup,
+		teammember.Setup,
+		teammemberadd.Setup,
+		vectorstore.Setup,
 		providerconfig.Setup,
-		memberteam.Setup,
-		memberaddteam.Setup,
-		store.Setup,
 	} {
 		if err := setup(mgr, o); err != nil {
 			return err
@@ -53,16 +53,16 @@ func SetupGated(mgr ctrl.Manager, o controller.Options) error {
 	for _, setup := range []func(ctrl.Manager, controller.Options) error{
 		credential.SetupGated,
 		key.SetupGated,
+		mcpserver.SetupGated,
 		model.SetupGated,
 		organization.SetupGated,
+		organizationmember.SetupGated,
+		organizationmemberadd.SetupGated,
 		team.SetupGated,
-		server.SetupGated,
-		member.SetupGated,
-		memberadd.SetupGated,
+		teammember.SetupGated,
+		teammemberadd.SetupGated,
+		vectorstore.SetupGated,
 		providerconfig.SetupGated,
-		memberteam.SetupGated,
-		memberaddteam.SetupGated,
-		store.SetupGated,
 	} {
 		if err := setup(mgr, o); err != nil {
 			return err
@@ -76,16 +76,16 @@ func SetupWebhookWithManager(mgr ctrl.Manager) error {
 	for _, setup := range []func(ctrl.Manager) error{
 		credential.SetupWebhookWithManager,
 		key.SetupWebhookWithManager,
+		mcpserver.SetupWebhookWithManager,
 		model.SetupWebhookWithManager,
 		organization.SetupWebhookWithManager,
+		organizationmember.SetupWebhookWithManager,
+		organizationmemberadd.SetupWebhookWithManager,
 		team.SetupWebhookWithManager,
-		server.SetupWebhookWithManager,
-		member.SetupWebhookWithManager,
-		memberadd.SetupWebhookWithManager,
+		teammember.SetupWebhookWithManager,
+		teammemberadd.SetupWebhookWithManager,
+		vectorstore.SetupWebhookWithManager,
 		providerconfig.SetupWebhookWithManager,
-		memberteam.SetupWebhookWithManager,
-		memberaddteam.SetupWebhookWithManager,
-		store.SetupWebhookWithManager,
 	} {
 		if err := setup(mgr); err != nil {
 			return err
