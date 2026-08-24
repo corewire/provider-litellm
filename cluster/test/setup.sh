@@ -28,8 +28,10 @@ metadata:
 type: Opaque
 stringData:
   credentials: |
-    LITELLM_API_BASE=${LITELLM_API_BASE}
-    LITELLM_API_KEY=${LITELLM_API_KEY}
+    {
+      "api_base": "${LITELLM_API_BASE}",
+      "api_key": "${LITELLM_API_KEY}"
+    }
 EOF
 
 echo "Creating ProviderConfig..."
