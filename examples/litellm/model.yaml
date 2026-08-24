@@ -1,3 +1,12 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: e2e-model-credentials
+  namespace: upbound-system
+type: Opaque
+stringData:
+  model-api-key: sk-e2e-model-key
+---
 apiVersion: litellm.crossplane.io/v1alpha1
 kind: Model
 metadata:
@@ -17,7 +26,7 @@ spec:
     outputCostPerMillionTokens: 60
     modelApiKeySecretRef:
       key: model-api-key
-      name: litellm-model-credentials
-      namespace: crossplane-system
+      name: e2e-model-credentials
+      namespace: upbound-system
   providerConfigRef:
     name: default

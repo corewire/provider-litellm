@@ -230,7 +230,7 @@ local-deploy: build controlplane.up local.xpkg.deploy.provider.$(PROJECT_NAME)
 	@$(KUBECTL) wait provider.pkg $(PROJECT_NAME) --for condition=Healthy --for condition=Installed --for=create --timeout 5m
 	@$(OK) running locally built provider
 
-e2e: local-deploy chainsaw
+e2e: local-deploy uptest
 
 # Compare the current schema.json against a schema from a specific provider version.
 # Downloads the old provider binary, generates its schema, and diffs the two.

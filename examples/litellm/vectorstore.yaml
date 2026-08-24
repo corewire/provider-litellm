@@ -1,0 +1,40 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: e2e-vectorstore-values
+  namespace: upbound-system
+type: Opaque
+stringData:
+  OPENAI_API_KEY: sk-e2e-openai-key
+---
+apiVersion: litellm.crossplane.io/v1alpha1
+kind: Credential
+metadata:
+  name: e2e-credential
+spec:
+  forProvider:
+    credentialName: e2e-credential
+    credentialInfo:
+      provider: openai
+    credentialValuesSecretRef:
+      name: e2e-vectorstore-values
+      namespace: upbound-system
+  providerConfigRef:
+    name: default
+---
+apiVersion: litellm.crossplane.io/v1alpha1
+kind: VectorStore
+metadata:
+  name: e2e-vectorstore
+spec:
+  forProvider:
+    customLlmProvider: openai
+    litellmCredentialName: e2e-credential
+    litellmParamsSecretRef:
+      name: e2e-vectorstore-values
+      namespace: upbound-system
+      key: OPENAI_API_KEY
+    vectorStoreName: e2e-vectorstore
+    vectorStoreDescription: e2e vector store
+  providerConfigRef:
+    name: default
