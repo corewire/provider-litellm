@@ -21,11 +21,11 @@ import (
 	// Note(turkenh): we are importing this to embed provider schema document
 	_ "embed"
 
+	litellmProvider "github.com/BerriAI/terraform-provider-litellm/litellm"
 	ujconfig "github.com/crossplane/upjet/v2/pkg/config"
 	conversiontfjson "github.com/crossplane/upjet/v2/pkg/types/conversion/tfjson"
 	tfjson "github.com/hashicorp/terraform-json"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	litellmProvider "github.com/BerriAI/terraform-provider-litellm/litellm"
 	"github.com/pkg/errors"
 )
 

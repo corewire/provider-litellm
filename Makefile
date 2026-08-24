@@ -163,6 +163,20 @@ run: go.build
 	@$(INFO) Running Crossplane locally out-of-cluster . . .
 	@UPBOUND_CONTEXT="local" $(GO_OUT_DIR)/provider --debug
 
+# Write config/generated.lst from config.ExternalNameConfigs so it can be
+# committed and used by the schema-diff-issues automation.
+generated-lst:
+	@go run ./cmd/generatedlist config/generated.lst
+
+# Verify that config/generated.lst matches config.ExternalNameConfigs. Exits
+# non-zero when the file is stale. Run generated-lst to fix.
+generated-lst-check:
+	@go run ./cmd/generatedlist --check config/generated.lst
+
+generate.done: generated-lst
+
+.PHONY: generated-lst generated-lst-check
+
 # ====================================================================================
 # End to End Testing
 
@@ -231,4 +245,44 @@ local-deploy: build controlplane.up local.xpkg.deploy.provider.$(PROJECT_NAME)
 
 e2e: local-deploy uptest
 
-.PHONY: uptest local-deploy e2e submodules cobertura go.cachedir run
+# Compare the current schema.json against a schema from a specific provider version.
+# Downloads the old provider binary, generates its schema, and diffs the two.
+# Usage:
+#   make schema-diff OLD_PROVIDER_VERSION=0.3.0
+schema-diff: $(TERRAFORM)
+	@if [ -z "$(OLD_PROVIDER_VERSION)" ]; then \
+		echo "Error: OLD_PROVIDER_VERSION is required. Usage: make schema-diff OLD_PROVIDER_VERSION=0.3.0"; \
+		exit 1; \
+	fi
+	@$(INFO) Comparing provider schema $(OLD_PROVIDER_VERSION) vs $(TERRAFORM_PROVIDER_VERSION)
+	@DIFF_OS=$$(uname -s | tr '[:upper:]' '[:lower:]'); \
+	DIFF_ARCH=$$(uname -m | sed 's/x86_64/amd64/' | sed 's/aarch64/arm64/'); \
+	DIFF_PLATFORM="$${DIFF_OS}_$${DIFF_ARCH}"; \
+	mkdir -p $(WORK_DIR)/schema-diff/old/$(TERRAFORM_FILE_MIRROR_REPO)/$(TERRAFORM_PROVIDER_SOURCE)/$(OLD_PROVIDER_VERSION)/$${DIFF_PLATFORM}; \
+	curl -fsSL $(TERRAFORM_PROVIDER_REPO)/releases/download/v$(OLD_PROVIDER_VERSION)/$(TERRAFORM_PROVIDER_DOWNLOAD_NAME)_$(OLD_PROVIDER_VERSION)_$${DIFF_PLATFORM}.zip \
+		-o $(WORK_DIR)/schema-diff/old/terraform-provider.zip; \
+	unzip -o -qq $(WORK_DIR)/schema-diff/old/terraform-provider.zip \
+		-d $(WORK_DIR)/schema-diff/old/$(TERRAFORM_FILE_MIRROR_REPO)/$(TERRAFORM_PROVIDER_SOURCE)/$(OLD_PROVIDER_VERSION)/$${DIFF_PLATFORM}/; \
+	rm -f $(WORK_DIR)/schema-diff/old/terraform-provider.zip; \
+	echo '{"terraform":[{"required_providers":[{"provider":{"source":"'"$(TERRAFORM_PROVIDER_SOURCE)"'","version":"'"$(OLD_PROVIDER_VERSION)"'"}}],"required_version":"'"$(TERRAFORM_VERSION)"'"}]}' > $(WORK_DIR)/schema-diff/old/main.tf.json; \
+	echo 'provider_installation { filesystem_mirror { path = "$(WORK_DIR)/schema-diff/old/$(TERRAFORM_FILE_MIRROR)" include = ["*/*/*"] } }' > $(WORK_DIR)/schema-diff/old/config.tfrc; \
+	TF_CLI_CONFIG_FILE=$(WORK_DIR)/schema-diff/old/config.tfrc $(TERRAFORM) -chdir=$(WORK_DIR)/schema-diff/old init -no-color > $(WORK_DIR)/schema-diff/old/terraform-logs.txt 2>&1; \
+	TF_CLI_CONFIG_FILE=$(WORK_DIR)/schema-diff/old/config.tfrc $(TERRAFORM) -chdir=$(WORK_DIR)/schema-diff/old providers schema -json=true > $(WORK_DIR)/schema-diff/old-schema.json 2>> $(WORK_DIR)/schema-diff/old/terraform-logs.txt; \
+	echo ""; \
+	echo "Comparing schema v$(OLD_PROVIDER_VERSION) -> v$(TERRAFORM_PROVIDER_VERSION):"; \
+	echo ""; \
+	./scripts/version_diff.py config/generated.lst $(WORK_DIR)/schema-diff/old-schema.json config/schema.json || true
+	@$(OK) Comparing provider schema $(OLD_PROVIDER_VERSION) vs $(TERRAFORM_PROVIDER_VERSION)
+
+# Diff the schema.json against the version from the base branch (used in CI).
+schema-version-diff:
+	@$(INFO) Checking for native state schema version changes
+	@export PREV_PROVIDER_VERSION=$$(git cat-file -p "${GITHUB_BASE_REF}:Makefile" | sed -nr 's/^export[[:space:]]*TERRAFORM_PROVIDER_VERSION[[:space:]]*\?=[[:space:]]*(.+)/\1/p'); \
+	echo Detected previous Terraform provider version: $${PREV_PROVIDER_VERSION}; \
+	echo Current Terraform provider version: $${TERRAFORM_PROVIDER_VERSION}; \
+	mkdir -p $(WORK_DIR); \
+	git cat-file -p "$${GITHUB_BASE_REF}:config/schema.json" > "$(WORK_DIR)/schema.json.$${PREV_PROVIDER_VERSION}"; \
+	./scripts/version_diff.py config/generated.lst "$(WORK_DIR)/schema.json.$${PREV_PROVIDER_VERSION}" config/schema.json
+	@$(OK) Checking for native state schema version changes
+
+.PHONY: uptest local-deploy e2e submodules cobertura go.cachedir run schema-diff schema-version-diff
