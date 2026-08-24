@@ -1,0 +1,33 @@
+# Crossplane build system output
+_output/
+_build/
+.work/
+.cache/
+
+# Terraform artifacts
+.terraform/
+*.tfstate
+*.tfstate.backup
+.terraform.d/
+
+# Go build artifacts
+*.exe
+*.test
+*.out
+vendor/
+
+# Generated files (recreated by `make generate`)
+# NOTE: We commit these in CI to detect drift, but exclude local overrides.
+config/schema.json.local
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+
+# Build tools cache
+bin/

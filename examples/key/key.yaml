@@ -1,0 +1,20 @@
+# After running `make generate`:
+#
+#   apiVersion: litellm.crossplane.io/v1alpha1
+#   kind: Key
+#   metadata:
+#     name: my-api-key
+#   spec:
+#     forProvider:
+#       models:
+#         - gpt-4
+#         - claude-3.5-sonnet
+#       maxBudget: 50.0
+#       keyAlias: my-production-key
+#       duration: 30d
+#       tpmLimit: 1000
+#       rpmLimit: 60
+#       tags:
+#         - production
+#     providerConfigRef:
+#       name: default

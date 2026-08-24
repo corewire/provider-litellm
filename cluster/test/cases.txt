@@ -1,0 +1,3 @@
+# LiteLLM e2e test cases
+# Add paths to test case directories here, one per line
+# Example: examples/model/model.yaml

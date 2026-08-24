@@ -1,0 +1,25 @@
+{
+  "extends": [
+    "config:base",
+    "helpers:pinGitHubActionDigests"
+  ],
+  "schedule": [
+    "before 6am on Monday"
+  ],
+  "enabledManagers": [
+    "gomod",
+    "github-actions",
+    "dockerfile"
+  ],
+  "pinDigests": true,
+  "packageRules": [
+    {
+      "matchManagers": [
+        "gomod",
+        "github-actions",
+        "dockerfile"
+      ],
+      "groupName": "all dependency updates"
+    }
+  ]
+}

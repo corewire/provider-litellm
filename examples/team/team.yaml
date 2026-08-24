@@ -1,0 +1,17 @@
+# After running `make generate`:
+#
+#   apiVersion: litellm.crossplane.io/v1alpha1
+#   kind: Team
+#   metadata:
+#     name: my-team
+#   spec:
+#     forProvider:
+#       teamId: my-team-id          # optional; auto-generated if omitted
+#       teamAlias: My Team
+#       maxBudget: 100.0
+#       budgetDuration: monthly
+#       models:
+#         - gpt-4
+#         - claude-3.5-sonnet
+#     providerConfigRef:
+#       name: default
