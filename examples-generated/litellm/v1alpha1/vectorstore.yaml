@@ -11,7 +11,6 @@ spec:
     customLlmProvider: bedrock
     litellmCredentialName: ${litellm_credential.bedrock_cred.credential_name}
     litellmParamsSecretRef:
-      key: example-key
       name: example-secret
       namespace: upbound-system
     vectorStoreDescription: Bedrock vector store for the LiteLLM website knowledgebase

@@ -24,7 +24,7 @@ type CredentialInitParameters struct {
 	// Name of the credential
 	CredentialName *string `json:"credentialName,omitempty" tf:"credential_name,omitempty"`
 
-	CredentialValues map[string]*string `json:"credentialValuesSecretRef" tf:"-"`
+	CredentialValues map[string]*string `json:"credentialValuesSecretRef,omitempty" tf:"-"`
 
 	// Model ID associated with this credential.
 	// Model ID associated with this credential

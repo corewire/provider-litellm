@@ -33,7 +33,6 @@ spec:
     litellmParamsSecretRef:
       name: e2e-vectorstore-values
       namespace: upbound-system
-      key: OPENAI_API_KEY
     vectorStoreName: e2e-vectorstore
     vectorStoreDescription: e2e vector store
   providerConfigRef:
