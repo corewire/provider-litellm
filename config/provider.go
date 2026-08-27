@@ -26,6 +26,7 @@ import (
 	ujconfig "github.com/crossplane/upjet/v2/pkg/config"
 	conversiontfjson "github.com/crossplane/upjet/v2/pkg/types/conversion/tfjson"
 	"github.com/crossplane/upjet/v2/pkg/types/name"
+	"github.com/crossplane/upjet/v2/pkg/types/structtag"
 	tfjson "github.com/hashicorp/terraform-json"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/pkg/errors"
@@ -92,7 +93,13 @@ func GetProvider(generationProvider bool) (*ujconfig.Provider, error) {
 	)
 
 	for _, configure := range []func(provider *ujconfig.Provider){
-		// add custom config functions here per resource group
+		func(provider *ujconfig.Provider) {
+			provider.Resources["litellm_credential"].SchemaElementOptions.SetInitProviderOverrides("credential_values", &ujconfig.InitProviderOverrides{
+				TagOverrides: ujconfig.TagOverrides{
+					JSONTag: structtag.NewJSON(structtag.WithOmit(structtag.OmitEmpty)),
+				},
+			})
+		},
 	} {
 		configure(pc)
 	}

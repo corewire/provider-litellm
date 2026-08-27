@@ -28,6 +28,7 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
+	litellmProvider "github.com/BerriAI/terraform-provider-litellm/litellm"
 	xpv1 "github.com/crossplane/crossplane-runtime/v2/apis/common/v1"
 	"github.com/crossplane/crossplane-runtime/v2/pkg/errors"
 	"github.com/crossplane/crossplane-runtime/v2/pkg/resource"
@@ -87,12 +88,20 @@ func TerraformSetupBuilder() terraform.SetupFn {
 			ps.Configuration[k] = v
 		}
 
-		if _, ok := ps.Configuration["api_base"]; !ok {
+		apiBase, ok := ps.Configuration["api_base"].(string)
+		if !ok || apiBase == "" {
 			return ps, errors.New(errMissingAPIBase)
 		}
-		if _, ok := ps.Configuration["api_key"]; !ok {
+		apiKey, ok := ps.Configuration["api_key"].(string)
+		if !ok || apiKey == "" {
 			return ps, errors.New(errMissingAPIKey)
 		}
+
+		ps.Meta = litellmProvider.NewClient(
+			apiBase,
+			apiKey,
+			false,
+		)
 
 		return ps, nil
 	}

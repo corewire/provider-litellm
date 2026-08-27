@@ -27,6 +27,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 
+	litellmProvider "github.com/BerriAI/terraform-provider-litellm/litellm"
 	xpv1 "github.com/crossplane/crossplane-runtime/v2/apis/common/v1"
 
 	litellmv1alpha1 "github.com/corewire/provider-litellm/apis/litellm/v1alpha1"
@@ -111,6 +112,22 @@ func TestTerraformSetupBuilder(t *testing.T) {
 			mg:      model("default"),
 			wantErr: errMissingAPIKey,
 		},
+		"InvalidAPIBase": {
+			objects: []client.Object{
+				providerConfig("credentials"),
+				secret(map[string][]byte{"credentials": []byte(`{"api_base":123,"api_key":"k"}`)}),
+			},
+			mg:      model("default"),
+			wantErr: errMissingAPIBase,
+		},
+		"InvalidAPIKey": {
+			objects: []client.Object{
+				providerConfig("credentials"),
+				secret(map[string][]byte{"credentials": []byte(`{"api_base":"http://litellm:4000","api_key":123}`)}),
+			},
+			mg:      model("default"),
+			wantErr: errMissingAPIKey,
+		},
 		"JSONCredentials": {
 			objects: []client.Object{
 				providerConfig("credentials"),
@@ -150,6 +167,13 @@ func TestTerraformSetupBuilder(t *testing.T) {
 				if ps.Configuration[k] != v {
 					t.Errorf("configuration[%q]: want %v, got %v", k, v, ps.Configuration[k])
 				}
+			}
+			got, ok := ps.Meta.(*litellmProvider.Client)
+			if !ok {
+				t.Fatalf("setup metadata: want *litellm.Client, got %T", ps.Meta)
+			}
+			if got.APIBase != tc.want["api_base"] || got.APIKey != tc.want["api_key"] {
+				t.Errorf("setup metadata client: want api_base %q and api_key %q, got %#v", tc.want["api_base"], tc.want["api_key"], got)
 			}
 		})
 	}
