@@ -21,6 +21,62 @@ data:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
+  name: postgresql
+  namespace: litellm
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgresql
+  template:
+    metadata:
+      labels:
+        app: postgresql
+    spec:
+      containers:
+      - name: postgresql
+        image: postgres:16-alpine
+        env:
+        - name: POSTGRES_DB
+          value: litellm
+        - name: POSTGRES_USER
+          value: litellm
+        - name: POSTGRES_PASSWORD
+          value: litellm
+        ports:
+        - containerPort: 5432
+        readinessProbe:
+          exec:
+            command:
+            - pg_isready
+            - -U
+            - litellm
+            - -d
+            - litellm
+          initialDelaySeconds: 5
+          periodSeconds: 5
+        volumeMounts:
+        - name: data
+          mountPath: /var/lib/postgresql/data
+      volumes:
+      - name: data
+        emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgresql
+  namespace: litellm
+spec:
+  selector:
+    app: postgresql
+  ports:
+  - port: 5432
+    targetPort: 5432
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
   name: litellm
   namespace: litellm
 spec:
@@ -33,6 +89,16 @@ spec:
       labels:
         app: litellm
     spec:
+      initContainers:
+      - name: wait-for-postgresql
+        image: postgres:16-alpine
+        command:
+        - sh
+        - -c
+        - until pg_isready -h postgresql -U litellm -d litellm; do sleep 2; done
+        env:
+        - name: PGPASSWORD
+          value: litellm
       containers:
       - name: litellm
         image: ghcr.io/berriai/litellm:main-stable
@@ -46,6 +112,12 @@ spec:
         env:
         - name: LITELLM_MASTER_KEY
           value: "sk-e2e-master-key"
+        - name: POSTGRES_USER
+          value: litellm
+        - name: POSTGRES_PASSWORD
+          value: litellm
+        - name: DATABASE_URL
+          value: "postgresql://$(POSTGRES_USER):$(POSTGRES_PASSWORD)@postgresql:5432/litellm"
         - name: STORE_MODEL_IN_DB
           value: "False"
         ports:
