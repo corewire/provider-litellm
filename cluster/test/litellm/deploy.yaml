@@ -133,6 +133,12 @@ spec:
           initialDelaySeconds: 30
           periodSeconds: 10
           failureThreshold: 18
+        startupProbe:
+          httpGet:
+            path: /health/liveliness
+            port: 4000
+          periodSeconds: 10
+          failureThreshold: 60
         livenessProbe:
           httpGet:
             path: /health/liveliness

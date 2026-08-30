@@ -12,8 +12,11 @@ LITELLM_API_KEY="sk-e2e-master-key"
 echo "Deploying LiteLLM in-cluster..."
 kubectl apply -f "${REPO_ROOT}/cluster/test/litellm/deploy.yaml"
 
-echo "Waiting for LiteLLM to become ready (up to 5 minutes)..."
-kubectl -n litellm rollout status deployment/litellm --timeout=300s
+echo "Waiting for PostgreSQL to become ready (up to 3 minutes)..."
+kubectl -n litellm rollout status deployment/postgresql --timeout=180s
+
+echo "Waiting for LiteLLM to become ready (up to 10 minutes)..."
+kubectl -n litellm rollout status deployment/litellm --timeout=600s
 
 echo "Creating upbound-system namespace..."
 kubectl get namespace upbound-system >/dev/null 2>&1 || kubectl create namespace upbound-system
