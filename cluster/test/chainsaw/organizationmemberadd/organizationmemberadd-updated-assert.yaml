@@ -1,0 +1,16 @@
+apiVersion: litellm.crossplane.io/v1alpha1
+kind: OrganizationMemberAdd
+metadata:
+  name: e2e-organizationmemberadd
+spec:
+  forProvider:
+    member:
+    - userId: user-org-add-1
+      userEmail: org-add-e2e@example.com
+      role: admin
+status:
+  conditions:
+  - type: Ready
+    status: "True"
+  - type: Synced
+    status: "True"

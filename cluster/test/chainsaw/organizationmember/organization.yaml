@@ -1,0 +1,10 @@
+apiVersion: litellm.crossplane.io/v1alpha1
+kind: Organization
+metadata:
+  name: e2e-organization-for-member
+spec:
+  forProvider:
+    organizationAlias: e2e-org-for-member
+    maxBudget: 100
+  providerConfigRef:
+    name: default

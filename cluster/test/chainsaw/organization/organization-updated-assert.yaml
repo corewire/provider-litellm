@@ -1,0 +1,13 @@
+apiVersion: litellm.crossplane.io/v1alpha1
+kind: Organization
+metadata:
+  name: e2e-organization
+spec:
+  forProvider:
+    maxBudget: 5000
+status:
+  conditions:
+  - type: Ready
+    status: "True"
+  - type: Synced
+    status: "True"

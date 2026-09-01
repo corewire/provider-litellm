@@ -1,0 +1,7 @@
+apiVersion: litellm.crossplane.io/v1alpha1
+kind: VectorStore
+metadata:
+  name: e2e-vectorstore
+spec:
+  forProvider:
+    vectorStoreDescription: e2e vector store updated

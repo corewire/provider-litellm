@@ -1,0 +1,10 @@
+apiVersion: litellm.crossplane.io/v1alpha1
+kind: Organization
+metadata:
+  name: e2e-organization
+status:
+  conditions:
+  - type: Ready
+    status: "True"
+  - type: Synced
+    status: "True"

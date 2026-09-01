@@ -1,0 +1,16 @@
+# Tilt local-development settings – copy this file to tilt-settings.yaml
+# and adjust the values as needed.  tilt-settings.yaml is git-ignored.
+#
+# All keys are optional; the defaults shown below are used when the file is
+# absent or a key is omitted.
+
+# Docker image repository used for the provider image that is loaded into
+# the local kind cluster.  Changing this is rarely necessary for local dev.
+# image_repo: ghcr.io/corewire/provider-litellm
+
+# Tag applied to the locally-built provider image.
+# provider_tag: dev
+
+# Master key injected into the in-cluster LiteLLM instance and the
+# litellm-credentials Secret.  Change this if you want a different key.
+# litellm_master_key: sk-local-dev-key

@@ -1,0 +1,42 @@
+apiVersion: chainsaw.kyverno.io/v1alpha1
+kind: Test
+metadata:
+  name: vectorstore
+spec:
+  timeouts:
+    apply: 5m
+    assert: 10m
+    delete: 5m
+  steps:
+  - name: create-prerequisites
+    try:
+    - apply:
+        file: credential-values-secret.yaml
+    - apply:
+        file: credential.yaml
+    - assert:
+        file: credential-assert.yaml
+  - name: create-vectorstore
+    try:
+    - apply:
+        file: vectorstore.yaml
+    - assert:
+        file: vectorstore-assert.yaml
+  - name: update-vectorstore
+    try:
+    - patch:
+        file: vectorstore-patch.yaml
+    - assert:
+        file: vectorstore-updated-assert.yaml
+  - name: delete-vectorstore
+    try:
+    - delete:
+        file: vectorstore.yaml
+    - error:
+        file: vectorstore-assert.yaml
+  - name: delete-credential
+    try:
+    - delete:
+        file: credential.yaml
+    - error:
+        file: credential-assert.yaml

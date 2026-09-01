@@ -1,0 +1,8 @@
+# Uptest cases are ordered so dependent resources are removed first.
+examples/litellm/vectorstore.yaml
+examples/litellm/key.yaml
+examples/litellm/mcpserver.yaml
+examples/litellm/credential.yaml
+examples/litellm/model.yaml
+examples/litellm/team.yaml
+examples/litellm/organization.yaml

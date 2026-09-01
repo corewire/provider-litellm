@@ -1,0 +1,12 @@
+apiVersion: litellm.crossplane.io/v1alpha1
+kind: Team
+metadata:
+  name: e2e-team
+spec:
+  forProvider:
+    teamAlias: e2e-team
+    maxBudget: 500
+    models:
+    - fake-gpt-4-team-e2e
+  providerConfigRef:
+    name: default

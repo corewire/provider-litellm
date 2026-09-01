@@ -1,0 +1,41 @@
+apiVersion: litellm.crossplane.io/v1alpha1
+kind: VectorStore
+metadata:
+  annotations:
+    meta.upbound.io/example-id: litellm/v1alpha1/vectorstore
+  labels:
+    testing.upbound.io/example-name: bedrock_kb
+  name: bedrock-kb
+spec:
+  forProvider:
+    customLlmProvider: bedrock
+    litellmCredentialName: ${litellm_credential.bedrock_cred.credential_name}
+    litellmParamsSecretRef:
+      key: example-key
+      name: example-secret
+      namespace: upbound-system
+    vectorStoreDescription: Bedrock vector store for the LiteLLM website knowledgebase
+    vectorStoreMetadata:
+      source: https://www.litellm.com/docs
+    vectorStoreName: bedrock-litellm-website-knowledgebase
+
+---
+
+apiVersion: litellm.crossplane.io/v1alpha1
+kind: Credential
+metadata:
+  annotations:
+    meta.upbound.io/example-id: /v1alpha1/vectorstore
+  labels:
+    testing.upbound.io/example-name: bedrock_cred
+  name: bedrock-cred
+spec:
+  forProvider:
+    credentialInfo:
+      provider: bedrock
+      region: us-east-1
+    credentialName: bedrock-knowledge-base
+    credentialValuesSecretRef:
+      key: example-key
+      name: example-secret
+      namespace: upbound-system

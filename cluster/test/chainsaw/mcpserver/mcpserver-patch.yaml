@@ -1,0 +1,7 @@
+apiVersion: litellm.crossplane.io/v1alpha1
+kind: McpServer
+metadata:
+  name: e2e-mcpserver
+spec:
+  forProvider:
+    url: http://example.com/mcp/v2

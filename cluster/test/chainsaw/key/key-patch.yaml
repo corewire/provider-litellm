@@ -1,0 +1,7 @@
+apiVersion: litellm.crossplane.io/v1alpha1
+kind: Key
+metadata:
+  name: e2e-key
+spec:
+  forProvider:
+    maxBudget: 100

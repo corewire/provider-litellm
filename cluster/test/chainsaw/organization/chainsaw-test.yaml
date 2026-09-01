@@ -1,0 +1,42 @@
+apiVersion: chainsaw.kyverno.io/v1alpha1
+kind: Test
+metadata:
+  name: organization
+spec:
+  timeouts:
+    apply: 5m
+    assert: 10m
+    delete: 5m
+  steps:
+  - name: create-prerequisites
+    try:
+    - apply:
+        file: model-secret.yaml
+    - apply:
+        file: model.yaml
+    - assert:
+        file: model-assert.yaml
+  - name: create-organization
+    try:
+    - apply:
+        file: organization.yaml
+    - assert:
+        file: organization-assert.yaml
+  - name: update-organization
+    try:
+    - patch:
+        file: organization-patch.yaml
+    - assert:
+        file: organization-updated-assert.yaml
+  - name: delete-organization
+    try:
+    - delete:
+        file: organization.yaml
+    - error:
+        file: organization-assert.yaml
+  - name: delete-prerequisites
+    try:
+    - delete:
+        file: model.yaml
+    - error:
+        file: model-assert.yaml

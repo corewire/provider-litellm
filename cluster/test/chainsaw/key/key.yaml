@@ -1,0 +1,13 @@
+apiVersion: litellm.crossplane.io/v1alpha1
+kind: Key
+metadata:
+  name: e2e-key
+spec:
+  forProvider:
+    keyAlias: e2e-key
+    models:
+    - fake-gpt-4-key-e2e
+    maxBudget: 50
+    duration: 30d
+  providerConfigRef:
+    name: default

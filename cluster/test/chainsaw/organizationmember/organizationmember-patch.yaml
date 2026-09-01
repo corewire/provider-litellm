@@ -1,0 +1,7 @@
+apiVersion: litellm.crossplane.io/v1alpha1
+kind: OrganizationMember
+metadata:
+  name: e2e-organizationmember
+spec:
+  forProvider:
+    role: admin

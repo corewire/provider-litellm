@@ -1,0 +1,39 @@
+name: Tag Release Commits
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
+
+jobs:
+  create-tag:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          fetch-depth: 0
+
+      - name: Create tag from commit message
+        shell: bash
+        env:
+          COMMIT_MESSAGE: ${{ github.event.head_commit.message }}
+        run: |
+          if [[ ! "${COMMIT_MESSAGE}" =~ \[release[[:space:]](v[0-9]+\.[0-9]+\.[0-9]+)\] ]]; then
+            echo "No release marker found in commit message."
+            exit 0
+          fi
+
+          VERSION="${BASH_REMATCH[1]}"
+          if git rev-parse "${VERSION}" >/dev/null 2>&1; then
+            echo "Tag ${VERSION} already exists."
+            exit 0
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git tag "${VERSION}" "${GITHUB_SHA}"
+          git push origin "${VERSION}"

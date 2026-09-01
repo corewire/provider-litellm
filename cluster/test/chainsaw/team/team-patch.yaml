@@ -1,0 +1,7 @@
+apiVersion: litellm.crossplane.io/v1alpha1
+kind: Team
+metadata:
+  name: e2e-team
+spec:
+  forProvider:
+    maxBudget: 1000

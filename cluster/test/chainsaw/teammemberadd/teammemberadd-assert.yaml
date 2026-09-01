@@ -1,0 +1,10 @@
+apiVersion: litellm.crossplane.io/v1alpha1
+kind: TeamMemberAdd
+metadata:
+  name: e2e-teammemberadd
+status:
+  conditions:
+  - type: Ready
+    status: "True"
+  - type: Synced
+    status: "True"

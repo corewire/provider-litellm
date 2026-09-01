@@ -1,0 +1,7 @@
+apiVersion: litellm.crossplane.io/v1alpha1
+kind: Organization
+metadata:
+  name: e2e-organization
+spec:
+  forProvider:
+    maxBudget: 5000

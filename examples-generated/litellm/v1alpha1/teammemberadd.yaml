@@ -1,0 +1,17 @@
+apiVersion: litellm.crossplane.io/v1alpha1
+kind: TeamMemberAdd
+metadata:
+  annotations:
+    meta.upbound.io/example-id: litellm/v1alpha1/teammemberadd
+  labels:
+    testing.upbound.io/example-name: example
+  name: example
+spec:
+  forProvider:
+    maxBudgetInTeam: 100
+    member:
+    - role: admin
+      userId: user-456
+    - role: user
+      userEmail: user@example.com
+    teamId: team-123

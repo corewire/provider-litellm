@@ -1,0 +1,11 @@
+apiVersion: litellm.crossplane.io/v1alpha1
+kind: TeamMemberAdd
+metadata:
+  name: e2e-teammemberadd
+spec:
+  forProvider:
+    maxBudgetInTeam: 20
+    member:
+    - userId: user-e2e-add-1
+      userEmail: e2e-add@example.com
+      role: user
