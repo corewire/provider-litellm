@@ -15,6 +15,7 @@ data:
     general_settings:
       master_key: "sk-e2e-master-key"
       database_connection_pool_limit: 10
+      database_url: "postgresql://litellm:litellm@postgresql.litellm.svc.cluster.local:5432/litellm"
     litellm_settings:
       drop_params: true
 ---
@@ -112,14 +113,10 @@ spec:
         env:
         - name: LITELLM_MASTER_KEY
           value: "sk-e2e-master-key"
-        - name: POSTGRES_USER
-          value: litellm
-        - name: POSTGRES_PASSWORD
-          value: litellm
         - name: DATABASE_URL
-          value: "postgresql://$(POSTGRES_USER):$(POSTGRES_PASSWORD)@postgresql:5432/litellm"
+          value: "postgresql://litellm:litellm@postgresql.litellm.svc.cluster.local:5432/litellm"
         - name: STORE_MODEL_IN_DB
-          value: "False"
+          value: "True"
         ports:
         - containerPort: 4000
         volumeMounts:
@@ -152,7 +149,7 @@ spec:
             memory: "512Mi"
           limits:
             cpu: "1"
-            memory: "1Gi"
+            memory: "2Gi"
       volumes:
       - name: config
         configMap:

@@ -4,7 +4,7 @@ metadata:
   name: e2e-mcpserver
 spec:
   forProvider:
-    serverName: e2e-mcp
+    serverName: e2e_mcp
     alias: e2e
     transport: http
     authType: none

@@ -8,3 +8,5 @@ status:
     status: "True"
   - type: Synced
     status: "True"
+  - type: LastAsyncOperation
+    status: "True"

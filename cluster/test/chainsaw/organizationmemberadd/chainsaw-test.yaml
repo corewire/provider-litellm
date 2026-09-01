@@ -8,6 +8,20 @@ spec:
     assert: 10m
     delete: 5m
   steps:
+  - name: create-user
+    try:
+    - script:
+        content: |
+          set -euo pipefail
+          kubectl exec -n litellm deploy/litellm -- python3 -c "
+          import urllib.request, json
+          data = json.dumps({'user_id': 'user-org-add-1', 'user_email': 'org-add-e2e@example.com'}).encode()
+          req = urllib.request.Request('http://localhost:4000/user/new', data=data, headers={'Authorization': 'Bearer sk-e2e-master-key', 'Content-Type': 'application/json'})
+          try:
+              urllib.request.urlopen(req)
+          except urllib.error.HTTPError as e:
+              if e.code != 409: raise
+          "
   - name: create-organization
     try:
     - apply:
@@ -39,7 +53,7 @@ spec:
               member:
               - userId: user-org-add-1
                 userEmail: org-add-e2e@example.com
-                role: user
+                role: internal_user
             providerConfigRef:
               name: default
           EOF

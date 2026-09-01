@@ -8,6 +8,30 @@ spec:
     assert: 10m
     delete: 5m
   steps:
+  - name: cleanup-stale-resources
+    try:
+    - delete:
+        ref:
+          apiVersion: litellm.crossplane.io/v1alpha1
+          kind: VectorStore
+          name: e2e-vectorstore
+    - delete:
+        ref:
+          apiVersion: litellm.crossplane.io/v1alpha1
+          kind: Credential
+          name: e2e-vectorstore-credential
+    - script:
+        content: |
+          set -euo pipefail
+          # Delete stale resources from LiteLLM if they exist
+          kubectl exec -n litellm deploy/litellm -- python3 -c "
+          import urllib.request, json, sys
+          for name in ['e2e-vectorstore-credential']:
+              data = json.dumps({'credential_name': name}).encode()
+              req = urllib.request.Request(f'http://localhost:4000/credentials/{name}', data=data, headers={'Authorization': 'Bearer sk-e2e-master-key', 'Content-Type': 'application/json'}, method='DELETE')
+              try: urllib.request.urlopen(req)
+              except: pass
+          " || true
   - name: create-prerequisites
     try:
     - apply:

@@ -4,10 +4,12 @@ metadata:
   name: e2e-organizationmember
 spec:
   forProvider:
-    role: admin
+    role: org_admin
 status:
   conditions:
   - type: Ready
     status: "True"
   - type: Synced
+    status: "True"
+  - type: LastAsyncOperation
     status: "True"

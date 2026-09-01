@@ -4,4 +4,4 @@ metadata:
   name: e2e-organizationmember
 spec:
   forProvider:
-    role: admin
+    role: org_admin
