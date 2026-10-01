@@ -161,4 +161,4 @@ require (
 	sigs.k8s.io/yaml v1.6.0 // indirect
 )
 
-replace github.com/BerriAI/terraform-provider-litellm => github.com/Breee/litellm/terraform/provider v0.0.0-20260928093154-9b3052690a77
+replace github.com/BerriAI/terraform-provider-litellm => github.com/Breee/litellm/terraform/provider v0.0.0-20261001151748-f3b34015d6aa
