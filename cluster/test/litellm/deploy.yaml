@@ -102,7 +102,8 @@ spec:
           value: litellm
       containers:
       - name: litellm
-        image: ghcr.io/berriai/litellm:main-stable
+        # v1.102.0+ requires an enterprise license for organization endpoints.
+        image: ghcr.io/berriai/litellm:v1.101.2
         args:
         - "--config"
         - "/app/config.yaml"

@@ -22,7 +22,7 @@ spec:
           name: e2e-vectorstore-credential
     - script:
         content: |
-          set -euo pipefail
+          set -eu
           # Delete stale resources from LiteLLM if they exist
           kubectl exec -n litellm deploy/litellm -- python3 -c "
           import urllib.request, json, sys

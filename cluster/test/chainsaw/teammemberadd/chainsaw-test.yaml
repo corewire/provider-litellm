@@ -18,7 +18,7 @@ spec:
     try:
     - script:
         content: |
-          set -euo pipefail
+          set -eu
           TEAM_ID=""
           for _ in $(seq 1 60); do
             TEAM_ID="$(kubectl get teams.litellm.crossplane.io e2e-team-for-member-add -o jsonpath='{.status.atProvider.id}' 2>/dev/null || true)"

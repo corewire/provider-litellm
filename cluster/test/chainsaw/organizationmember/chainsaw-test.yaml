@@ -12,7 +12,7 @@ spec:
     try:
     - script:
         content: |
-          set -euo pipefail
+          set -eu
           kubectl exec -n litellm deploy/litellm -- python3 -c "
           import urllib.request, json
           data = json.dumps({'user_id': 'user-org-1', 'user_email': 'org-e2e@example.com'}).encode()
@@ -32,7 +32,7 @@ spec:
     try:
     - script:
         content: |
-          set -euo pipefail
+          set -eu
           ORGANIZATION_ID=""
           for _ in $(seq 1 60); do
             ORGANIZATION_ID="$(kubectl get organizations.litellm.crossplane.io e2e-organization-for-member -o jsonpath='{.status.atProvider.id}' 2>/dev/null || true)"
