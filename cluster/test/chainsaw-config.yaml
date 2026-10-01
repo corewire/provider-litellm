@@ -7,5 +7,7 @@ spec:
     apply: 5m
     assert: 10m
     delete: 5m
+    # Scripts poll for up to 5m waiting on upstream resource IDs.
+    exec: 6m
   skipDelete: false
   fullName: true
