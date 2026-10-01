@@ -8,10 +8,15 @@ metadata:
   name: example
 spec:
   forProvider:
+    allowedModels:
+    - gpt-4
+    budgetDuration: 30d
     maxBudgetInTeam: 100
     member:
     - role: admin
       userId: user-456
     - role: user
       userEmail: user@example.com
+    rpmLimit: 100
     teamId: team-123
+    tpmLimit: 100000

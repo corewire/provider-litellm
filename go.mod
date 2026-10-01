@@ -4,7 +4,7 @@ go 1.27.0
 
 require (
 	dario.cat/mergo v1.0.2
-	github.com/BerriAI/terraform-provider-litellm v1.98.0
+	github.com/BerriAI/terraform-provider-litellm v1.103.0
 	github.com/alecthomas/kingpin/v2 v2.4.0
 	github.com/crossplane/crossplane-runtime/v2 v2.2.4
 	github.com/crossplane/crossplane-tools v0.0.0-20251017183449-dd4517244339
@@ -160,3 +160,5 @@ require (
 	sigs.k8s.io/structured-merge-diff/v6 v6.4.0 // indirect
 	sigs.k8s.io/yaml v1.6.0 // indirect
 )
+
+replace github.com/BerriAI/terraform-provider-litellm => github.com/Breee/litellm/terraform/provider v0.0.0-20260928093154-9b3052690a77

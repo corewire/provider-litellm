@@ -6,7 +6,20 @@
 
 All managed resources are generated from
 [`BerriAI/terraform-provider-litellm`](https://github.com/BerriAI/terraform-provider-litellm)
-v1.98.0.
+v1.103.0, with a temporary Go module replacement pinned to
+[`Breee/litellm` commit `9b3052690a77`](https://github.com/Breee/litellm/commit/9b3052690a77011c4b268829087d57e1b3bb2eb9).
+This includes the pending key team/alias update and vector-store creation fixes.
+Generation builds the same pinned dependency used by the runtime and copies its
+resource documentation; no local checkout override is required.
+
+### Upgrade From the Previous Scaffold
+
+`Key.spec.forProvider.modelMaxBudget` and its `initProvider` counterpart now
+accept a JSON string instead of a numeric map. Convert existing values before
+installing the new CRD, for example
+`modelMaxBudget: '{"my-model":{"budget_limit":50}}'`.
+Terraform state version 0 is upgraded to version 1 by the embedded provider,
+but that does not migrate Kubernetes manifests or stored custom resources.
 
 | API version | Kind | Description |
 |-------------|------|-------------|
@@ -24,13 +37,16 @@ v1.98.0.
 
 ### Install
 
+No tagged provider release has been published yet. Replace `<published-tag>`
+with an available package tag, or use `make local-deploy` for a local build.
+
 ```yaml
 apiVersion: pkg.crossplane.io/v1
 kind: Provider
 metadata:
   name: provider-litellm
 spec:
-  package: ghcr.io/corewire/provider-litellm:v0.1.0
+  package: ghcr.io/corewire/provider-litellm:<published-tag>
 ```
 
 ### Configure

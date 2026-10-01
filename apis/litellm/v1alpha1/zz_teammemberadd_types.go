@@ -15,14 +15,26 @@ import (
 
 type TeamMemberAddInitParameters struct {
 
+	// List of models each team member can access. If not set, members inherit the team's default_team_member_models or all team models.
+	AllowedModels []*string `json:"allowedModels,omitempty" tf:"allowed_models,omitempty"`
+
+	// Duration after which each member's budget resets, for example "1h", "24h", "7d", "30d". If not set, the budget never resets.
+	BudgetDuration *string `json:"budgetDuration,omitempty" tf:"budget_duration,omitempty"`
+
 	// The maximum budget allocated for the team members.
 	MaxBudgetInTeam *float64 `json:"maxBudgetInTeam,omitempty" tf:"max_budget_in_team,omitempty"`
 
 	// One or more member blocks defining team members. Each block supports:
 	Member []TeamMemberAddMemberInitParameters `json:"member,omitempty" tf:"member,omitempty"`
 
+	// Requests per minute limit applied to each team member. Sent via /team/member_update after members are added, since /team/member_add does not accept it.
+	RpmLimit *float64 `json:"rpmLimit,omitempty" tf:"rpm_limit,omitempty"`
+
 	// The ID of the team to add members to.
 	TeamID *string `json:"teamId,omitempty" tf:"team_id,omitempty"`
+
+	// Tokens per minute limit applied to each team member. Sent via /team/member_update after members are added, since /team/member_add does not accept it.
+	TpmLimit *float64 `json:"tpmLimit,omitempty" tf:"tpm_limit,omitempty"`
 }
 
 type TeamMemberAddMemberInitParameters struct {
@@ -65,6 +77,13 @@ type TeamMemberAddMemberParameters struct {
 }
 
 type TeamMemberAddObservation struct {
+
+	// List of models each team member can access. If not set, members inherit the team's default_team_member_models or all team models.
+	AllowedModels []*string `json:"allowedModels,omitempty" tf:"allowed_models,omitempty"`
+
+	// Duration after which each member's budget resets, for example "1h", "24h", "7d", "30d". If not set, the budget never resets.
+	BudgetDuration *string `json:"budgetDuration,omitempty" tf:"budget_duration,omitempty"`
+
 	ID *string `json:"id,omitempty" tf:"id,omitempty"`
 
 	// The maximum budget allocated for the team members.
@@ -73,11 +92,25 @@ type TeamMemberAddObservation struct {
 	// One or more member blocks defining team members. Each block supports:
 	Member []TeamMemberAddMemberObservation `json:"member,omitempty" tf:"member,omitempty"`
 
+	// Requests per minute limit applied to each team member. Sent via /team/member_update after members are added, since /team/member_add does not accept it.
+	RpmLimit *float64 `json:"rpmLimit,omitempty" tf:"rpm_limit,omitempty"`
+
 	// The ID of the team to add members to.
 	TeamID *string `json:"teamId,omitempty" tf:"team_id,omitempty"`
+
+	// Tokens per minute limit applied to each team member. Sent via /team/member_update after members are added, since /team/member_add does not accept it.
+	TpmLimit *float64 `json:"tpmLimit,omitempty" tf:"tpm_limit,omitempty"`
 }
 
 type TeamMemberAddParameters struct {
+
+	// List of models each team member can access. If not set, members inherit the team's default_team_member_models or all team models.
+	// +kubebuilder:validation:Optional
+	AllowedModels []*string `json:"allowedModels,omitempty" tf:"allowed_models,omitempty"`
+
+	// Duration after which each member's budget resets, for example "1h", "24h", "7d", "30d". If not set, the budget never resets.
+	// +kubebuilder:validation:Optional
+	BudgetDuration *string `json:"budgetDuration,omitempty" tf:"budget_duration,omitempty"`
 
 	// The maximum budget allocated for the team members.
 	// +kubebuilder:validation:Optional
@@ -87,9 +120,17 @@ type TeamMemberAddParameters struct {
 	// +kubebuilder:validation:Optional
 	Member []TeamMemberAddMemberParameters `json:"member,omitempty" tf:"member,omitempty"`
 
+	// Requests per minute limit applied to each team member. Sent via /team/member_update after members are added, since /team/member_add does not accept it.
+	// +kubebuilder:validation:Optional
+	RpmLimit *float64 `json:"rpmLimit,omitempty" tf:"rpm_limit,omitempty"`
+
 	// The ID of the team to add members to.
 	// +kubebuilder:validation:Optional
 	TeamID *string `json:"teamId,omitempty" tf:"team_id,omitempty"`
+
+	// Tokens per minute limit applied to each team member. Sent via /team/member_update after members are added, since /team/member_add does not accept it.
+	// +kubebuilder:validation:Optional
+	TpmLimit *float64 `json:"tpmLimit,omitempty" tf:"tpm_limit,omitempty"`
 }
 
 // TeamMemberAddSpec defines the desired state of TeamMemberAdd

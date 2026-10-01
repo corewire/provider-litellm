@@ -13,7 +13,7 @@ TERRAFORM_VERSION_VALID := $(shell [ "$(TERRAFORM_VERSION)" = "`printf "$(TERRAF
 export TERRAFORM_PROVIDER_SOURCE  ?= BerriAI/litellm
 export TERRAFORM_PROVIDER_REPO    ?= https://github.com/BerriAI/terraform-provider-litellm
 # renovate: datasource=github-releases depName=BerriAI/terraform-provider-litellm
-export TERRAFORM_PROVIDER_VERSION ?= 1.98.0
+export TERRAFORM_PROVIDER_VERSION ?= 1.103.0
 export TERRAFORM_PROVIDER_DOWNLOAD_NAME ?= terraform-provider-litellm
 export TERRAFORM_PROVIDER_DOWNLOAD_URL_PREFIX ?= ${TERRAFORM_PROVIDER_REPO}/releases/download/v$(TERRAFORM_PROVIDER_VERSION)
 export TERRAFORM_NATIVE_PROVIDER_BINARY ?= terraform-provider-litellm_v$(TERRAFORM_PROVIDER_VERSION)
@@ -35,7 +35,7 @@ PLATFORMS ?= linux_amd64 linux_arm64
 # ====================================================================================
 # Setup Go
 
-NPROCS ?= 1
+NPROCS ?= 2
 GO_TEST_PARALLEL := $(shell echo $$(( $(NPROCS) / 2 )))
 
 GO_REQUIRED_VERSION ?= 1.27.0
@@ -110,10 +110,11 @@ $(TERRAFORM): check-terraform-version
 $(TERRAFORM_PROVIDER_SCHEMA): $(TERRAFORM)
 	@$(INFO) generating provider schema for $(TERRAFORM_PROVIDER_SOURCE) $(TERRAFORM_PROVIDER_VERSION)
 	@mkdir -p $(TERRAFORM_WORKDIR)
-	@$(MAKE) download-tf-provider-platforms
+	@mkdir -p $(TERRAFORM_WORKDIR)/$(TERRAFORM_FILE_MIRROR_REPO)/$(TERRAFORM_PROVIDER_SOURCE)/$(TERRAFORM_PROVIDER_VERSION)/$(SAFEHOST_PLATFORM)
+	@CGO_ENABLED=0 GOOS=$$(go env GOHOSTOS) GOARCH=$$(go env GOHOSTARCH) go build -o $(TERRAFORM_WORKDIR)/$(TERRAFORM_FILE_MIRROR_REPO)/$(TERRAFORM_PROVIDER_SOURCE)/$(TERRAFORM_PROVIDER_VERSION)/$(SAFEHOST_PLATFORM)/$(TERRAFORM_NATIVE_PROVIDER_BINARY) github.com/BerriAI/terraform-provider-litellm
 	@echo '{"terraform":[{"required_providers":[{"provider":{"source":"'"$(TERRAFORM_PROVIDER_SOURCE)"'","version":"'"$(TERRAFORM_PROVIDER_VERSION)"'"}}],"required_version":"'"$(TERRAFORM_VERSION)"'"}]}' > $(TERRAFORM_WORKDIR)/main.tf.json
 	@echo 'provider_installation { filesystem_mirror { path = "$(TERRAFORM_WORKDIR)/$(TERRAFORM_FILE_MIRROR)" include = ["*/*/*"] } }' > $(TERRAFORM_WORKDIR)/config.tfrc
-	@TF_CLI_CONFIG_FILE=$(TERRAFORM_WORKDIR)/config.tfrc $(TERRAFORM) -chdir=$(TERRAFORM_WORKDIR) init -no-color > $(TERRAFORM_WORKDIR)/terraform-logs.txt 2>&1
+	@TF_CLI_CONFIG_FILE=$(TERRAFORM_WORKDIR)/config.tfrc $(TERRAFORM) -chdir=$(TERRAFORM_WORKDIR) init -upgrade -no-color > $(TERRAFORM_WORKDIR)/terraform-logs.txt 2>&1
 	@TF_CLI_CONFIG_FILE=$(TERRAFORM_WORKDIR)/config.tfrc $(TERRAFORM) -chdir=$(TERRAFORM_WORKDIR) providers schema -json=true > $(TERRAFORM_PROVIDER_SCHEMA) 2>> $(TERRAFORM_WORKDIR)/terraform-logs.txt
 	@$(OK) generating provider schema for $(TERRAFORM_PROVIDER_SOURCE) $(TERRAFORM_PROVIDER_VERSION)
 
@@ -134,13 +135,9 @@ download-tf-provider-platform:
 	@rm $(TERRAFORM_WORKDIR)/$(TERRAFORM_FILE_MIRROR_REPO)/$(TERRAFORM_PROVIDER_SOURCE)/$(TERRAFORM_PROVIDER_VERSION)/${PLATFORM}/terraform.zip
 
 pull-docs:
-	@if [ ! -d "$(WORK_DIR)/$(TERRAFORM_PROVIDER_SOURCE)" ]; then \
-		mkdir -p "$(WORK_DIR)/$(TERRAFORM_PROVIDER_SOURCE)" && \
-		git clone -c advice.detachedHead=false --depth 1 --filter=blob:none \
-			--branch "v$(TERRAFORM_PROVIDER_VERSION)" --sparse \
-			"$(TERRAFORM_PROVIDER_REPO)" "$(WORK_DIR)/$(TERRAFORM_PROVIDER_SOURCE)"; \
-	fi
-	@git -C "$(WORK_DIR)/$(TERRAFORM_PROVIDER_SOURCE)" sparse-checkout set "$(TERRAFORM_DOCS_PATH)"
+	@module_dir=$$(go list -m -f '{{.Dir}}' github.com/BerriAI/terraform-provider-litellm); \
+		mkdir -p "$(WORK_DIR)/$(TERRAFORM_PROVIDER_SOURCE)/$(TERRAFORM_DOCS_PATH)" && \
+		cp -Rf "$$module_dir/$(TERRAFORM_DOCS_PATH)/." "$(WORK_DIR)/$(TERRAFORM_PROVIDER_SOURCE)/$(TERRAFORM_DOCS_PATH)/"
 
 # The upjet code generator shells out to goimports, so it has to be on PATH
 # before `go generate` runs.
@@ -213,15 +210,15 @@ UPTEST_EXAMPLE_LIST := $(shell grep -v '^\#' cluster/test/cases.txt | paste -sd 
 
 uptest: $(UPTEST) $(KUBECTL) $(CHAINSAW) $(CROSSPLANE_CLI)
 	@$(INFO) running automated tests
-	@KUBECTL=$(KUBECTL) CHAINSAW=$(CHAINSAW) CROSSPLANE_CLI=$(CROSSPLANE_CLI) CROSSPLANE_NAMESPACE=$(CROSSPLANE_NAMESPACE) \
+	@KUBECTL=$(KUBECTL) KUBE_CONTEXT=kind-$(KIND_CLUSTER_NAME) CHAINSAW=$(CHAINSAW) CROSSPLANE_CLI=$(CROSSPLANE_CLI) CROSSPLANE_NAMESPACE=$(CROSSPLANE_NAMESPACE) \
 		$(UPTEST) e2e "$(UPTEST_EXAMPLE_LIST)" --data-source="${UPTEST_DATASOURCE_PATH}" \
 		--setup-script=cluster/test/setup.sh --default-conditions="Test" --default-timeout=2400s || $(FAIL)
 	@$(OK) running automated tests
 
 chainsaw: $(CHAINSAW) $(KUBECTL)
 	@$(INFO) running chainsaw e2e tests
-	@cluster/test/setup.sh
-	@$(CHAINSAW) test --config cluster/test/chainsaw-config.yaml cluster/test/chainsaw/ || $(FAIL)
+	@KUBECTL="$(KUBECTL)" KUBE_CONTEXT="kind-$(KIND_CLUSTER_NAME)" cluster/test/setup.sh
+	@$(CHAINSAW) test --kube-context "kind-$(KIND_CLUSTER_NAME)" --config cluster/test/chainsaw-config.yaml cluster/test/chainsaw/ || $(FAIL)
 	@$(OK) running chainsaw e2e tests
 
 local-deploy: build controlplane.up local.xpkg.deploy.provider.$(PROJECT_NAME)
@@ -230,7 +227,7 @@ local-deploy: build controlplane.up local.xpkg.deploy.provider.$(PROJECT_NAME)
 	@$(KUBECTL) wait provider.pkg $(PROJECT_NAME) --for condition=Healthy --for condition=Installed --for=create --timeout 5m
 	@$(OK) running locally built provider
 
-e2e: local-deploy uptest
+e2e: local-deploy chainsaw
 
 # Compare the current schema.json against a schema from a specific provider version.
 # Downloads the old provider binary, generates its schema, and diffs the two.

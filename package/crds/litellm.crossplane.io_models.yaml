@@ -168,6 +168,11 @@ spec:
                     description: string. The LLM provider for this model (e.g., "openai",
                       "anthropic", "azure", "bedrock").
                     type: string
+                  displayName:
+                    description: |-
+                      string. Human-readable name stored in model_info.display_name and returned as display_name by /v1/models, so clients such as Claude Code and Claude Desktop show it in their model picker instead of model_name. When unset, clients fall back to model_name.
+                      Human-readable name returned as display_name by /v1/models, shown in client model pickers instead of model_name
+                    type: string
                   inputCostPerMillionTokens:
                     description: float. Cost per million input tokens. The provider
                       converts this to a per-token cost sent to the API.
@@ -428,6 +433,11 @@ spec:
                   customLlmProvider:
                     description: string. The LLM provider for this model (e.g., "openai",
                       "anthropic", "azure", "bedrock").
+                    type: string
+                  displayName:
+                    description: |-
+                      string. Human-readable name stored in model_info.display_name and returned as display_name by /v1/models, so clients such as Claude Code and Claude Desktop show it in their model picker instead of model_name. When unset, clients fall back to model_name.
+                      Human-readable name returned as display_name by /v1/models, shown in client model pickers instead of model_name
                     type: string
                   inputCostPerMillionTokens:
                     description: float. Cost per million input tokens. The provider
@@ -706,6 +716,11 @@ spec:
                   customLlmProvider:
                     description: string. The LLM provider for this model (e.g., "openai",
                       "anthropic", "azure", "bedrock").
+                    type: string
+                  displayName:
+                    description: |-
+                      string. Human-readable name stored in model_info.display_name and returned as display_name by /v1/models, so clients such as Claude Code and Claude Desktop show it in their model picker instead of model_name. When unset, clients fall back to model_name.
+                      Human-readable name returned as display_name by /v1/models, shown in client model pickers instead of model_name
                     type: string
                   id:
                     description: The ID of the model configuration.

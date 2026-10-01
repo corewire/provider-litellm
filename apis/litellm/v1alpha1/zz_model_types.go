@@ -44,6 +44,10 @@ type ModelInitParameters struct {
 	// string. The LLM provider for this model (e.g., "openai", "anthropic", "azure", "bedrock").
 	CustomLlmProvider *string `json:"customLlmProvider,omitempty" tf:"custom_llm_provider,omitempty"`
 
+	// string. Human-readable name stored in model_info.display_name and returned as display_name by /v1/models, so clients such as Claude Code and Claude Desktop show it in their model picker instead of model_name. When unset, clients fall back to model_name.
+	// Human-readable name returned as display_name by /v1/models, shown in client model pickers instead of model_name
+	DisplayName *string `json:"displayName,omitempty" tf:"display_name,omitempty"`
+
 	// float. Cost per million input tokens. The provider converts this to a per-token cost sent to the API.
 	InputCostPerMillionTokens *float64 `json:"inputCostPerMillionTokens,omitempty" tf:"input_cost_per_million_tokens,omitempty"`
 
@@ -133,6 +137,10 @@ type ModelObservation struct {
 
 	// string. The LLM provider for this model (e.g., "openai", "anthropic", "azure", "bedrock").
 	CustomLlmProvider *string `json:"customLlmProvider,omitempty" tf:"custom_llm_provider,omitempty"`
+
+	// string. Human-readable name stored in model_info.display_name and returned as display_name by /v1/models, so clients such as Claude Code and Claude Desktop show it in their model picker instead of model_name. When unset, clients fall back to model_name.
+	// Human-readable name returned as display_name by /v1/models, shown in client model pickers instead of model_name
+	DisplayName *string `json:"displayName,omitempty" tf:"display_name,omitempty"`
 
 	// The ID of the model configuration.
 	ID *string `json:"id,omitempty" tf:"id,omitempty"`
@@ -235,6 +243,11 @@ type ModelParameters struct {
 	// string. The LLM provider for this model (e.g., "openai", "anthropic", "azure", "bedrock").
 	// +kubebuilder:validation:Optional
 	CustomLlmProvider *string `json:"customLlmProvider,omitempty" tf:"custom_llm_provider,omitempty"`
+
+	// string. Human-readable name stored in model_info.display_name and returned as display_name by /v1/models, so clients such as Claude Code and Claude Desktop show it in their model picker instead of model_name. When unset, clients fall back to model_name.
+	// Human-readable name returned as display_name by /v1/models, shown in client model pickers instead of model_name
+	// +kubebuilder:validation:Optional
+	DisplayName *string `json:"displayName,omitempty" tf:"display_name,omitempty"`
 
 	// float. Cost per million input tokens. The provider converts this to a per-token cost sent to the API.
 	// +kubebuilder:validation:Optional

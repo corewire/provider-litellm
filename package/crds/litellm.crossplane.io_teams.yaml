@@ -72,6 +72,12 @@ spec:
                 type: string
               forProvider:
                 properties:
+                  allowedPassthroughRoutes:
+                    description: List of pass-through routes this team is allowed
+                      to call.
+                    items:
+                      type: string
+                    type: array
                   blocked:
                     description: Whether the team is blocked from making requests.
                       Default is false.
@@ -79,14 +85,43 @@ spec:
                   budgetDuration:
                     description: 'Duration for the budget cycle. Valid values are:'
                     type: string
+                  guardrails:
+                    description: List of guardrails applied to every request made
+                      by this team.
+                    items:
+                      type: string
+                    type: array
                   maxBudget:
                     description: Maximum budget allocated to the team.
                     type: number
                   metadata:
                     additionalProperties:
                       type: string
-                    description: A map of metadata key-value pairs associated with
-                      the team.
+                    description: A map of string metadata key-value pairs associated
+                      with the team. tags and soft_budget_alerting_emails are stored
+                      by the proxy under metadata but are managed through their own
+                      attributes below, not this map.
+                    type: object
+                    x-kubernetes-map-type: granular
+                  modelAliases:
+                    additionalProperties:
+                      type: string
+                    description: Map of alias names to model names, letting the team
+                      call models under stable alias names.
+                    type: object
+                    x-kubernetes-map-type: granular
+                  modelRpmLimit:
+                    additionalProperties:
+                      type: number
+                    description: Map of model name to requests per minute limit for
+                      that model.
+                    type: object
+                    x-kubernetes-map-type: granular
+                  modelTpmLimit:
+                    additionalProperties:
+                      type: number
+                    description: Map of model name to tokens per minute limit for
+                      that model.
                     type: object
                     x-kubernetes-map-type: granular
                   models:
@@ -97,11 +132,58 @@ spec:
                   organizationId:
                     description: The ID of the organization this team belongs to.
                     type: string
+                  prompts:
+                    description: List of prompt IDs the team is allowed to use.
+                    items:
+                      type: string
+                    type: array
                   rpmLimit:
                     description: Team-wide requests per minute limit.
                     type: number
+                  rpmLimitType:
+                    description: |-
+                      How the RPM limit is enforced: guaranteed_throughput or best_effort_throughput. Changing this forces a new team to be created.
+                      One of 'guaranteed_throughput' or 'best_effort_throughput'; only settable at creation
+                    type: string
+                  softBudget:
+                    description: |-
+                      Spend threshold at which the proxy sends a soft budget alert without blocking requests.
+                      Spend threshold that triggers a soft budget alert without blocking requests
+                    type: number
+                  softBudgetAlertingEmails:
+                    description: |-
+                      List of email addresses notified when the team's spend crosses soft_budget.
+                      Email addresses alerted when the team crosses soft_budget
+                    items:
+                      type: string
+                    type: array
+                  tags:
+                    description: |-
+                      List of tags applied to the team, used for spend tracking and tag-based routing.
+                      Tags for spend tracking and tag-based routing
+                    items:
+                      type: string
+                    type: array
                   teamAlias:
                     description: A human-readable identifier for the team.
+                    type: string
+                  teamId:
+                    description: |-
+                      A stable, human-readable ID for the team (for example platform-team). If omitted, the provider generates a random UUID. Changing this forces a new team to be created.
+                      Unique ID for the team. Generated by the provider if not provided
+                    type: string
+                  teamMemberBudget:
+                    description: |-
+                      Budget (in USD) applied to each individual team member.
+                      Budget applied to every team member
+                    type: number
+                  teamMemberBudgetDuration:
+                    description: Reset cycle for the per-member budget (e.g. 30d,
+                      1mo).
+                    type: string
+                  teamMemberKeyDuration:
+                    description: Lifetime for keys created by team members (e.g. 1d,
+                      1w).
                     type: string
                   teamMemberPermissions:
                     description: |-
@@ -110,9 +192,22 @@ spec:
                     items:
                       type: string
                     type: array
+                  teamMemberRpmLimit:
+                    description: Requests per minute limit applied to each individual
+                      team member.
+                    type: number
+                  teamMemberTpmLimit:
+                    description: Tokens per minute limit applied to each individual
+                      team member.
+                    type: number
                   tpmLimit:
                     description: Team-wide tokens per minute limit.
                     type: number
+                  tpmLimitType:
+                    description: |-
+                      How the TPM limit is enforced: guaranteed_throughput or best_effort_throughput. Changing this forces a new team to be created.
+                      One of 'guaranteed_throughput' or 'best_effort_throughput'; only settable at creation
+                    type: string
                 type: object
               initProvider:
                 description: |-
@@ -127,6 +222,12 @@ spec:
                   for example because of an external controller is managing them, like an
                   autoscaler.
                 properties:
+                  allowedPassthroughRoutes:
+                    description: List of pass-through routes this team is allowed
+                      to call.
+                    items:
+                      type: string
+                    type: array
                   blocked:
                     description: Whether the team is blocked from making requests.
                       Default is false.
@@ -134,14 +235,43 @@ spec:
                   budgetDuration:
                     description: 'Duration for the budget cycle. Valid values are:'
                     type: string
+                  guardrails:
+                    description: List of guardrails applied to every request made
+                      by this team.
+                    items:
+                      type: string
+                    type: array
                   maxBudget:
                     description: Maximum budget allocated to the team.
                     type: number
                   metadata:
                     additionalProperties:
                       type: string
-                    description: A map of metadata key-value pairs associated with
-                      the team.
+                    description: A map of string metadata key-value pairs associated
+                      with the team. tags and soft_budget_alerting_emails are stored
+                      by the proxy under metadata but are managed through their own
+                      attributes below, not this map.
+                    type: object
+                    x-kubernetes-map-type: granular
+                  modelAliases:
+                    additionalProperties:
+                      type: string
+                    description: Map of alias names to model names, letting the team
+                      call models under stable alias names.
+                    type: object
+                    x-kubernetes-map-type: granular
+                  modelRpmLimit:
+                    additionalProperties:
+                      type: number
+                    description: Map of model name to requests per minute limit for
+                      that model.
+                    type: object
+                    x-kubernetes-map-type: granular
+                  modelTpmLimit:
+                    additionalProperties:
+                      type: number
+                    description: Map of model name to tokens per minute limit for
+                      that model.
                     type: object
                     x-kubernetes-map-type: granular
                   models:
@@ -152,11 +282,58 @@ spec:
                   organizationId:
                     description: The ID of the organization this team belongs to.
                     type: string
+                  prompts:
+                    description: List of prompt IDs the team is allowed to use.
+                    items:
+                      type: string
+                    type: array
                   rpmLimit:
                     description: Team-wide requests per minute limit.
                     type: number
+                  rpmLimitType:
+                    description: |-
+                      How the RPM limit is enforced: guaranteed_throughput or best_effort_throughput. Changing this forces a new team to be created.
+                      One of 'guaranteed_throughput' or 'best_effort_throughput'; only settable at creation
+                    type: string
+                  softBudget:
+                    description: |-
+                      Spend threshold at which the proxy sends a soft budget alert without blocking requests.
+                      Spend threshold that triggers a soft budget alert without blocking requests
+                    type: number
+                  softBudgetAlertingEmails:
+                    description: |-
+                      List of email addresses notified when the team's spend crosses soft_budget.
+                      Email addresses alerted when the team crosses soft_budget
+                    items:
+                      type: string
+                    type: array
+                  tags:
+                    description: |-
+                      List of tags applied to the team, used for spend tracking and tag-based routing.
+                      Tags for spend tracking and tag-based routing
+                    items:
+                      type: string
+                    type: array
                   teamAlias:
                     description: A human-readable identifier for the team.
+                    type: string
+                  teamId:
+                    description: |-
+                      A stable, human-readable ID for the team (for example platform-team). If omitted, the provider generates a random UUID. Changing this forces a new team to be created.
+                      Unique ID for the team. Generated by the provider if not provided
+                    type: string
+                  teamMemberBudget:
+                    description: |-
+                      Budget (in USD) applied to each individual team member.
+                      Budget applied to every team member
+                    type: number
+                  teamMemberBudgetDuration:
+                    description: Reset cycle for the per-member budget (e.g. 30d,
+                      1mo).
+                    type: string
+                  teamMemberKeyDuration:
+                    description: Lifetime for keys created by team members (e.g. 1d,
+                      1w).
                     type: string
                   teamMemberPermissions:
                     description: |-
@@ -165,9 +342,22 @@ spec:
                     items:
                       type: string
                     type: array
+                  teamMemberRpmLimit:
+                    description: Requests per minute limit applied to each individual
+                      team member.
+                    type: number
+                  teamMemberTpmLimit:
+                    description: Tokens per minute limit applied to each individual
+                      team member.
+                    type: number
                   tpmLimit:
                     description: Team-wide tokens per minute limit.
                     type: number
+                  tpmLimitType:
+                    description: |-
+                      How the TPM limit is enforced: guaranteed_throughput or best_effort_throughput. Changing this forces a new team to be created.
+                      One of 'guaranteed_throughput' or 'best_effort_throughput'; only settable at creation
+                    type: string
                 type: object
               managementPolicies:
                 default:
@@ -265,6 +455,12 @@ spec:
             properties:
               atProvider:
                 properties:
+                  allowedPassthroughRoutes:
+                    description: List of pass-through routes this team is allowed
+                      to call.
+                    items:
+                      type: string
+                    type: array
                   blocked:
                     description: Whether the team is blocked from making requests.
                       Default is false.
@@ -272,8 +468,14 @@ spec:
                   budgetDuration:
                     description: 'Duration for the budget cycle. Valid values are:'
                     type: string
+                  guardrails:
+                    description: List of guardrails applied to every request made
+                      by this team.
+                    items:
+                      type: string
+                    type: array
                   id:
-                    description: The unique identifier for the team.
+                    description: The unique identifier for the team, equal to team_id.
                     type: string
                   maxBudget:
                     description: Maximum budget allocated to the team.
@@ -281,8 +483,31 @@ spec:
                   metadata:
                     additionalProperties:
                       type: string
-                    description: A map of metadata key-value pairs associated with
-                      the team.
+                    description: A map of string metadata key-value pairs associated
+                      with the team. tags and soft_budget_alerting_emails are stored
+                      by the proxy under metadata but are managed through their own
+                      attributes below, not this map.
+                    type: object
+                    x-kubernetes-map-type: granular
+                  modelAliases:
+                    additionalProperties:
+                      type: string
+                    description: Map of alias names to model names, letting the team
+                      call models under stable alias names.
+                    type: object
+                    x-kubernetes-map-type: granular
+                  modelRpmLimit:
+                    additionalProperties:
+                      type: number
+                    description: Map of model name to requests per minute limit for
+                      that model.
+                    type: object
+                    x-kubernetes-map-type: granular
+                  modelTpmLimit:
+                    additionalProperties:
+                      type: number
+                    description: Map of model name to tokens per minute limit for
+                      that model.
                     type: object
                     x-kubernetes-map-type: granular
                   models:
@@ -293,11 +518,58 @@ spec:
                   organizationId:
                     description: The ID of the organization this team belongs to.
                     type: string
+                  prompts:
+                    description: List of prompt IDs the team is allowed to use.
+                    items:
+                      type: string
+                    type: array
                   rpmLimit:
                     description: Team-wide requests per minute limit.
                     type: number
+                  rpmLimitType:
+                    description: |-
+                      How the RPM limit is enforced: guaranteed_throughput or best_effort_throughput. Changing this forces a new team to be created.
+                      One of 'guaranteed_throughput' or 'best_effort_throughput'; only settable at creation
+                    type: string
+                  softBudget:
+                    description: |-
+                      Spend threshold at which the proxy sends a soft budget alert without blocking requests.
+                      Spend threshold that triggers a soft budget alert without blocking requests
+                    type: number
+                  softBudgetAlertingEmails:
+                    description: |-
+                      List of email addresses notified when the team's spend crosses soft_budget.
+                      Email addresses alerted when the team crosses soft_budget
+                    items:
+                      type: string
+                    type: array
+                  tags:
+                    description: |-
+                      List of tags applied to the team, used for spend tracking and tag-based routing.
+                      Tags for spend tracking and tag-based routing
+                    items:
+                      type: string
+                    type: array
                   teamAlias:
                     description: A human-readable identifier for the team.
+                    type: string
+                  teamId:
+                    description: |-
+                      A stable, human-readable ID for the team (for example platform-team). If omitted, the provider generates a random UUID. Changing this forces a new team to be created.
+                      Unique ID for the team. Generated by the provider if not provided
+                    type: string
+                  teamMemberBudget:
+                    description: |-
+                      Budget (in USD) applied to each individual team member.
+                      Budget applied to every team member
+                    type: number
+                  teamMemberBudgetDuration:
+                    description: Reset cycle for the per-member budget (e.g. 30d,
+                      1mo).
+                    type: string
+                  teamMemberKeyDuration:
+                    description: Lifetime for keys created by team members (e.g. 1d,
+                      1w).
                     type: string
                   teamMemberPermissions:
                     description: |-
@@ -306,9 +578,22 @@ spec:
                     items:
                       type: string
                     type: array
+                  teamMemberRpmLimit:
+                    description: Requests per minute limit applied to each individual
+                      team member.
+                    type: number
+                  teamMemberTpmLimit:
+                    description: Tokens per minute limit applied to each individual
+                      team member.
+                    type: number
                   tpmLimit:
                     description: Team-wide tokens per minute limit.
                     type: number
+                  tpmLimitType:
+                    description: |-
+                      How the TPM limit is enforced: guaranteed_throughput or best_effort_throughput. Changing this forces a new team to be created.
+                      One of 'guaranteed_throughput' or 'best_effort_throughput'; only settable at creation
+                    type: string
                 type: object
               conditions:
                 description: Conditions of the resource.

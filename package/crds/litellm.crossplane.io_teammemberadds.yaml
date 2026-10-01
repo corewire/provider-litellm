@@ -72,6 +72,18 @@ spec:
                 type: string
               forProvider:
                 properties:
+                  allowedModels:
+                    description: List of models each team member can access. If not
+                      set, members inherit the team's default_team_member_models or
+                      all team models.
+                    items:
+                      type: string
+                    type: array
+                  budgetDuration:
+                    description: Duration after which each member's budget resets,
+                      for example "1h", "24h", "7d", "30d". If not set, the budget
+                      never resets.
+                    type: string
                   maxBudgetInTeam:
                     description: The maximum budget allocated for the team members.
                     type: number
@@ -92,9 +104,19 @@ spec:
                           type: string
                       type: object
                     type: array
+                  rpmLimit:
+                    description: Requests per minute limit applied to each team member.
+                      Sent via /team/member_update after members are added, since
+                      /team/member_add does not accept it.
+                    type: number
                   teamId:
                     description: The ID of the team to add members to.
                     type: string
+                  tpmLimit:
+                    description: Tokens per minute limit applied to each team member.
+                      Sent via /team/member_update after members are added, since
+                      /team/member_add does not accept it.
+                    type: number
                 type: object
               initProvider:
                 description: |-
@@ -109,6 +131,18 @@ spec:
                   for example because of an external controller is managing them, like an
                   autoscaler.
                 properties:
+                  allowedModels:
+                    description: List of models each team member can access. If not
+                      set, members inherit the team's default_team_member_models or
+                      all team models.
+                    items:
+                      type: string
+                    type: array
+                  budgetDuration:
+                    description: Duration after which each member's budget resets,
+                      for example "1h", "24h", "7d", "30d". If not set, the budget
+                      never resets.
+                    type: string
                   maxBudgetInTeam:
                     description: The maximum budget allocated for the team members.
                     type: number
@@ -129,9 +163,19 @@ spec:
                           type: string
                       type: object
                     type: array
+                  rpmLimit:
+                    description: Requests per minute limit applied to each team member.
+                      Sent via /team/member_update after members are added, since
+                      /team/member_add does not accept it.
+                    type: number
                   teamId:
                     description: The ID of the team to add members to.
                     type: string
+                  tpmLimit:
+                    description: Tokens per minute limit applied to each team member.
+                      Sent via /team/member_update after members are added, since
+                      /team/member_add does not accept it.
+                    type: number
                 type: object
               managementPolicies:
                 default:
@@ -233,6 +277,18 @@ spec:
             properties:
               atProvider:
                 properties:
+                  allowedModels:
+                    description: List of models each team member can access. If not
+                      set, members inherit the team's default_team_member_models or
+                      all team models.
+                    items:
+                      type: string
+                    type: array
+                  budgetDuration:
+                    description: Duration after which each member's budget resets,
+                      for example "1h", "24h", "7d", "30d". If not set, the budget
+                      never resets.
+                    type: string
                   id:
                     type: string
                   maxBudgetInTeam:
@@ -255,9 +311,19 @@ spec:
                           type: string
                       type: object
                     type: array
+                  rpmLimit:
+                    description: Requests per minute limit applied to each team member.
+                      Sent via /team/member_update after members are added, since
+                      /team/member_add does not accept it.
+                    type: number
                   teamId:
                     description: The ID of the team to add members to.
                     type: string
+                  tpmLimit:
+                    description: Tokens per minute limit applied to each team member.
+                      Sent via /team/member_update after members are added, since
+                      /team/member_add does not accept it.
+                    type: number
                 type: object
               conditions:
                 description: Conditions of the resource.

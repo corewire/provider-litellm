@@ -20,6 +20,7 @@ package config
 import (
 	// Note(turkenh): we are importing this to embed provider schema document
 	_ "embed"
+	"regexp"
 	"strings"
 
 	litellmProvider "github.com/BerriAI/terraform-provider-litellm/litellm"
@@ -79,9 +80,14 @@ func GetProvider(generationProvider bool) (*ujconfig.Provider, error) {
 		p = litellmProvider.Provider()
 	}
 
+	includePatterns := make([]string, 0, len(ExternalNameConfigs))
+	for _, resourceName := range ExternalNameConfigured() {
+		includePatterns = append(includePatterns, "^"+regexp.QuoteMeta(resourceName)+"$")
+	}
+
 	pc := ujconfig.NewProvider([]byte(providerSchema), resourcePrefix, modulePath, []byte(providerMetadata),
 		ujconfig.WithIncludeList([]string{}),
-		ujconfig.WithTerraformPluginSDKIncludeList(ExternalNameConfigured()),
+		ujconfig.WithTerraformPluginSDKIncludeList(includePatterns),
 		ujconfig.WithTerraformPluginFrameworkIncludeList([]string{}),
 		ujconfig.WithTerraformProvider(p),
 		ujconfig.WithFeaturesPackage("internal/features"),

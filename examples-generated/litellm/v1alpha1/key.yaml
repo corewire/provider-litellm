@@ -26,8 +26,13 @@ spec:
     maxParallelRequests: 5
     metadata:
       environment: production
-    modelMaxBudget:
-      gpt-4: 50
+    modelMaxBudget: |-
+      ${jsonencode({
+          "gpt-4" = {
+            budget_limit = 50.0
+            time_period  = "30d"
+          }
+        })}
     modelRpmLimit:
       gpt-3.5-turbo: 30
     modelTpmLimit:

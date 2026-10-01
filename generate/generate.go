@@ -24,7 +24,7 @@ limitations under the License.
 //go:generate rm -rf ../package/crds
 
 // Remove generated files
-//go:generate bash -c "find ../apis \\( -iname 'zz_generated.conversion_hubs.go' -o -iname 'zz_generated.conversion_spokes.go' -o -iname 'zz_generated.resolvers.go' \\) -delete"
+//go:generate bash -c "find ../apis -iname 'zz_generated.*.go' -delete"
 //go:generate bash -c "find ../apis -type d -empty -delete"
 //go:generate bash -c "find ../internal/controller -iname 'zz_*' -delete"
 //go:generate bash -c "find ../internal/controller -type d -empty -delete"

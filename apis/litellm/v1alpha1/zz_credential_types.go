@@ -15,6 +15,10 @@ import (
 
 type CredentialInitParameters struct {
 
+	// Take over a credential of this name that already exists on the proxy instead of failing. Turning this on overwrites the existing credential's values with the ones in this configuration.
+	// Take over a credential of this name that already exists on the proxy instead of failing. Turning this on overwrites the existing credential's values with the ones in this configuration.
+	AdoptExisting *bool `json:"adoptExisting,omitempty" tf:"adopt_existing,omitempty"`
+
 	// Map of additional non-sensitive information about the credential.
 	// Additional information about the credential
 	// +mapType=granular
@@ -33,6 +37,10 @@ type CredentialInitParameters struct {
 
 type CredentialObservation struct {
 
+	// Take over a credential of this name that already exists on the proxy instead of failing. Turning this on overwrites the existing credential's values with the ones in this configuration.
+	// Take over a credential of this name that already exists on the proxy instead of failing. Turning this on overwrites the existing credential's values with the ones in this configuration.
+	AdoptExisting *bool `json:"adoptExisting,omitempty" tf:"adopt_existing,omitempty"`
+
 	// Map of additional non-sensitive information about the credential.
 	// Additional information about the credential
 	// +mapType=granular
@@ -50,6 +58,11 @@ type CredentialObservation struct {
 }
 
 type CredentialParameters struct {
+
+	// Take over a credential of this name that already exists on the proxy instead of failing. Turning this on overwrites the existing credential's values with the ones in this configuration.
+	// Take over a credential of this name that already exists on the proxy instead of failing. Turning this on overwrites the existing credential's values with the ones in this configuration.
+	// +kubebuilder:validation:Optional
+	AdoptExisting *bool `json:"adoptExisting,omitempty" tf:"adopt_existing,omitempty"`
 
 	// Map of additional non-sensitive information about the credential.
 	// Additional information about the credential

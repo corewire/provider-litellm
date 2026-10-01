@@ -86,6 +86,17 @@ spec:
                     items:
                       type: string
                     type: array
+                  allowedPassthroughRoutes:
+                    description: List of pass-through routes this key is allowed to
+                      call.
+                    items:
+                      type: string
+                    type: array
+                  allowedRoutes:
+                    description: List of proxy routes this key is allowed to call.
+                    items:
+                      type: string
+                    type: array
                   blocked:
                     description: Whether this key is blocked. If set to true, the
                       key will be unable to make any requests.
@@ -93,6 +104,10 @@ spec:
                   budgetDuration:
                     description: Duration for the budget (e.g., "monthly", "weekly").
                       This defines the time period for which the max_budget applies.
+                    type: string
+                  budgetId:
+                    description: ID of a shared budget (created via litellm_budget)
+                      to attach to this key.
                     type: string
                   config:
                     additionalProperties:
@@ -102,9 +117,16 @@ spec:
                     type: object
                     x-kubernetes-map-type: granular
                   duration:
-                    description: Duration for which this key is valid. This sets an
-                      expiration time for the key.
+                    description: |-
+                      How long the key stays valid, e.g. "30d" or "12h". The proxy stores this as an absolute expires timestamp. Changing the value resets the expiry to the time of the update plus the new duration; removing it from the configuration leaves the current expiry in place.
+                      How long the key stays valid, e.g. "30d" or "12h". Changing it resets the expiry to the time of the update plus the new duration; removing it leaves the current expiry in place
                     type: string
+                  enforcedParams:
+                    description: List of request parameters that callers must supply
+                      when using this key (for example user).
+                    items:
+                      type: string
+                    type: array
                   guardrails:
                     description: List of guardrails applied to this key. This can
                       be used to enforce certain safety or quality checks.
@@ -149,12 +171,10 @@ spec:
                     type: object
                     x-kubernetes-map-type: granular
                   modelMaxBudget:
-                    additionalProperties:
-                      type: number
-                    description: Maximum budget per model. This allows setting different
-                      budget limits for each model.
-                    type: object
-                    x-kubernetes-map-type: granular
+                    description: |-
+                      JSON string of per-model budget config, e.g. jsonencode({"gpt-4" = {budget_limit = 50.0, time_period = "30d"}}). Each model maps to an object with budget_limit (or max_budget), time_period (or budget_duration), tpm_limit and rpm_limit.
+                      JSON string of per-model budget config (e.g. '{"gpt-4o-mini": {"budget_limit": 50, "time_period": "30d"}}')
+                    type: string
                   modelRpmLimit:
                     additionalProperties:
                       type: number
@@ -175,6 +195,9 @@ spec:
                     items:
                       type: string
                     type: array
+                  organizationId:
+                    description: ID of the organization this key belongs to.
+                    type: string
                   permissions:
                     additionalProperties:
                       type: string
@@ -182,10 +205,24 @@ spec:
                       what actions are allowed with this key.
                     type: object
                     x-kubernetes-map-type: granular
+                  projectId:
+                    description: ID of the project this key belongs to. Changing this
+                      forces a new key to be created.
+                    type: string
+                  prompts:
+                    description: List of prompt IDs this key is allowed to use.
+                    items:
+                      type: string
+                    type: array
                   rpmLimit:
                     description: Requests per minute limit for this key. This sets
                       a rate limit based on the number of API calls.
                     type: number
+                  rpmLimitType:
+                    description: |-
+                      How the RPM limit is enforced. One of guaranteed_throughput, best_effort_throughput or dynamic.
+                      One of 'guaranteed_throughput', 'best_effort_throughput' or 'dynamic'
+                    type: string
                   softBudget:
                     description: Soft budget limit for this key. This can be used
                       to set a warning threshold before reaching the max_budget.
@@ -204,6 +241,11 @@ spec:
                     description: Tokens per minute limit for this key. This sets a
                       rate limit based on the number of tokens processed.
                     type: number
+                  tpmLimitType:
+                    description: |-
+                      How the TPM limit is enforced. One of guaranteed_throughput, best_effort_throughput or dynamic.
+                      One of 'guaranteed_throughput', 'best_effort_throughput' or 'dynamic'
+                    type: string
                   userId:
                     description: User ID associated with this key. This links the
                       key to a specific user in the LiteLLM system.
@@ -236,6 +278,17 @@ spec:
                     items:
                       type: string
                     type: array
+                  allowedPassthroughRoutes:
+                    description: List of pass-through routes this key is allowed to
+                      call.
+                    items:
+                      type: string
+                    type: array
+                  allowedRoutes:
+                    description: List of proxy routes this key is allowed to call.
+                    items:
+                      type: string
+                    type: array
                   blocked:
                     description: Whether this key is blocked. If set to true, the
                       key will be unable to make any requests.
@@ -243,6 +296,10 @@ spec:
                   budgetDuration:
                     description: Duration for the budget (e.g., "monthly", "weekly").
                       This defines the time period for which the max_budget applies.
+                    type: string
+                  budgetId:
+                    description: ID of a shared budget (created via litellm_budget)
+                      to attach to this key.
                     type: string
                   config:
                     additionalProperties:
@@ -252,9 +309,16 @@ spec:
                     type: object
                     x-kubernetes-map-type: granular
                   duration:
-                    description: Duration for which this key is valid. This sets an
-                      expiration time for the key.
+                    description: |-
+                      How long the key stays valid, e.g. "30d" or "12h". The proxy stores this as an absolute expires timestamp. Changing the value resets the expiry to the time of the update plus the new duration; removing it from the configuration leaves the current expiry in place.
+                      How long the key stays valid, e.g. "30d" or "12h". Changing it resets the expiry to the time of the update plus the new duration; removing it leaves the current expiry in place
                     type: string
+                  enforcedParams:
+                    description: List of request parameters that callers must supply
+                      when using this key (for example user).
+                    items:
+                      type: string
+                    type: array
                   guardrails:
                     description: List of guardrails applied to this key. This can
                       be used to enforce certain safety or quality checks.
@@ -299,12 +363,10 @@ spec:
                     type: object
                     x-kubernetes-map-type: granular
                   modelMaxBudget:
-                    additionalProperties:
-                      type: number
-                    description: Maximum budget per model. This allows setting different
-                      budget limits for each model.
-                    type: object
-                    x-kubernetes-map-type: granular
+                    description: |-
+                      JSON string of per-model budget config, e.g. jsonencode({"gpt-4" = {budget_limit = 50.0, time_period = "30d"}}). Each model maps to an object with budget_limit (or max_budget), time_period (or budget_duration), tpm_limit and rpm_limit.
+                      JSON string of per-model budget config (e.g. '{"gpt-4o-mini": {"budget_limit": 50, "time_period": "30d"}}')
+                    type: string
                   modelRpmLimit:
                     additionalProperties:
                       type: number
@@ -325,6 +387,9 @@ spec:
                     items:
                       type: string
                     type: array
+                  organizationId:
+                    description: ID of the organization this key belongs to.
+                    type: string
                   permissions:
                     additionalProperties:
                       type: string
@@ -332,10 +397,24 @@ spec:
                       what actions are allowed with this key.
                     type: object
                     x-kubernetes-map-type: granular
+                  projectId:
+                    description: ID of the project this key belongs to. Changing this
+                      forces a new key to be created.
+                    type: string
+                  prompts:
+                    description: List of prompt IDs this key is allowed to use.
+                    items:
+                      type: string
+                    type: array
                   rpmLimit:
                     description: Requests per minute limit for this key. This sets
                       a rate limit based on the number of API calls.
                     type: number
+                  rpmLimitType:
+                    description: |-
+                      How the RPM limit is enforced. One of guaranteed_throughput, best_effort_throughput or dynamic.
+                      One of 'guaranteed_throughput', 'best_effort_throughput' or 'dynamic'
+                    type: string
                   softBudget:
                     description: Soft budget limit for this key. This can be used
                       to set a warning threshold before reaching the max_budget.
@@ -354,6 +433,11 @@ spec:
                     description: Tokens per minute limit for this key. This sets a
                       rate limit based on the number of tokens processed.
                     type: number
+                  tpmLimitType:
+                    description: |-
+                      How the TPM limit is enforced. One of guaranteed_throughput, best_effort_throughput or dynamic.
+                      One of 'guaranteed_throughput', 'best_effort_throughput' or 'dynamic'
+                    type: string
                   userId:
                     description: User ID associated with this key. This links the
                       key to a specific user in the LiteLLM system.
@@ -464,6 +548,17 @@ spec:
                     items:
                       type: string
                     type: array
+                  allowedPassthroughRoutes:
+                    description: List of pass-through routes this key is allowed to
+                      call.
+                    items:
+                      type: string
+                    type: array
+                  allowedRoutes:
+                    description: List of proxy routes this key is allowed to call.
+                    items:
+                      type: string
+                    type: array
                   blocked:
                     description: Whether this key is blocked. If set to true, the
                       key will be unable to make any requests.
@@ -471,6 +566,10 @@ spec:
                   budgetDuration:
                     description: Duration for the budget (e.g., "monthly", "weekly").
                       This defines the time period for which the max_budget applies.
+                    type: string
+                  budgetId:
+                    description: ID of a shared budget (created via litellm_budget)
+                      to attach to this key.
                     type: string
                   config:
                     additionalProperties:
@@ -480,9 +579,16 @@ spec:
                     type: object
                     x-kubernetes-map-type: granular
                   duration:
-                    description: Duration for which this key is valid. This sets an
-                      expiration time for the key.
+                    description: |-
+                      How long the key stays valid, e.g. "30d" or "12h". The proxy stores this as an absolute expires timestamp. Changing the value resets the expiry to the time of the update plus the new duration; removing it from the configuration leaves the current expiry in place.
+                      How long the key stays valid, e.g. "30d" or "12h". Changing it resets the expiry to the time of the update plus the new duration; removing it leaves the current expiry in place
                     type: string
+                  enforcedParams:
+                    description: List of request parameters that callers must supply
+                      when using this key (for example user).
+                    items:
+                      type: string
+                    type: array
                   guardrails:
                     description: List of guardrails applied to this key. This can
                       be used to enforce certain safety or quality checks.
@@ -511,12 +617,10 @@ spec:
                     type: object
                     x-kubernetes-map-type: granular
                   modelMaxBudget:
-                    additionalProperties:
-                      type: number
-                    description: Maximum budget per model. This allows setting different
-                      budget limits for each model.
-                    type: object
-                    x-kubernetes-map-type: granular
+                    description: |-
+                      JSON string of per-model budget config, e.g. jsonencode({"gpt-4" = {budget_limit = 50.0, time_period = "30d"}}). Each model maps to an object with budget_limit (or max_budget), time_period (or budget_duration), tpm_limit and rpm_limit.
+                      JSON string of per-model budget config (e.g. '{"gpt-4o-mini": {"budget_limit": 50, "time_period": "30d"}}')
+                    type: string
                   modelRpmLimit:
                     additionalProperties:
                       type: number
@@ -537,6 +641,9 @@ spec:
                     items:
                       type: string
                     type: array
+                  organizationId:
+                    description: ID of the organization this key belongs to.
+                    type: string
                   permissions:
                     additionalProperties:
                       type: string
@@ -544,10 +651,32 @@ spec:
                       what actions are allowed with this key.
                     type: object
                     x-kubernetes-map-type: granular
+                  projectId:
+                    description: ID of the project this key belongs to. Changing this
+                      forces a new key to be created.
+                    type: string
+                  prompts:
+                    description: List of prompt IDs this key is allowed to use.
+                    items:
+                      type: string
+                    type: array
                   rpmLimit:
                     description: Requests per minute limit for this key. This sets
                       a rate limit based on the number of API calls.
                     type: number
+                  rpmLimitType:
+                    description: |-
+                      How the RPM limit is enforced. One of guaranteed_throughput, best_effort_throughput or dynamic.
+                      One of 'guaranteed_throughput', 'best_effort_throughput' or 'dynamic'
+                    type: string
+                  serverMetadata:
+                    additionalProperties:
+                      type: string
+                    description: |-
+                      Map of every metadata entry the proxy stores for this key, including entries not declared in metadata, so drift on them is visible on refresh. Entries already exposed as their own attributes (model_rpm_limit, model_tpm_limit, tags, guardrails, enforced_params, allowed_passthrough_routes, rpm_limit_type, tpm_limit_type, prompts) are omitted and non-string values are JSON encoded.
+                      Every metadata entry the proxy stores for this key, including ones not declared in metadata. Entries the provider already exposes as their own attributes (model_rpm_limit, model_tpm_limit, tags, guardrails, enforced_params, allowed_passthrough_routes, rpm_limit_type, tpm_limit_type, prompts) are omitted, and non-string values are JSON encoded
+                    type: object
+                    x-kubernetes-map-type: granular
                   softBudget:
                     description: Soft budget limit for this key. This can be used
                       to set a warning threshold before reaching the max_budget.
@@ -572,6 +701,11 @@ spec:
                     description: Tokens per minute limit for this key. This sets a
                       rate limit based on the number of tokens processed.
                     type: number
+                  tpmLimitType:
+                    description: |-
+                      How the TPM limit is enforced. One of guaranteed_throughput, best_effort_throughput or dynamic.
+                      One of 'guaranteed_throughput', 'best_effort_throughput' or 'dynamic'
+                    type: string
                   userId:
                     description: User ID associated with this key. This links the
                       key to a specific user in the LiteLLM system.

@@ -22,18 +22,31 @@ type KeyInitParameters struct {
 	// List of allowed cache control directives. This can be used to control caching behavior for requests made with this key.
 	AllowedCacheControls []*string `json:"allowedCacheControls,omitempty" tf:"allowed_cache_controls,omitempty"`
 
+	// List of pass-through routes this key is allowed to call.
+	AllowedPassthroughRoutes []*string `json:"allowedPassthroughRoutes,omitempty" tf:"allowed_passthrough_routes,omitempty"`
+
+	// List of proxy routes this key is allowed to call.
+	AllowedRoutes []*string `json:"allowedRoutes,omitempty" tf:"allowed_routes,omitempty"`
+
 	// Whether this key is blocked. If set to true, the key will be unable to make any requests.
 	Blocked *bool `json:"blocked,omitempty" tf:"blocked,omitempty"`
 
 	// Duration for the budget (e.g., "monthly", "weekly"). This defines the time period for which the max_budget applies.
 	BudgetDuration *string `json:"budgetDuration,omitempty" tf:"budget_duration,omitempty"`
 
+	// ID of a shared budget (created via litellm_budget) to attach to this key.
+	BudgetID *string `json:"budgetId,omitempty" tf:"budget_id,omitempty"`
+
 	// Configuration options for this key. This can be used to set key-specific settings.
 	// +mapType=granular
 	Config map[string]*string `json:"config,omitempty" tf:"config,omitempty"`
 
-	// Duration for which this key is valid. This sets an expiration time for the key.
+	// How long the key stays valid, e.g. "30d" or "12h". The proxy stores this as an absolute expires timestamp. Changing the value resets the expiry to the time of the update plus the new duration; removing it from the configuration leaves the current expiry in place.
+	// How long the key stays valid, e.g. "30d" or "12h". Changing it resets the expiry to the time of the update plus the new duration; removing it leaves the current expiry in place
 	Duration *string `json:"duration,omitempty" tf:"duration,omitempty"`
+
+	// List of request parameters that callers must supply when using this key (for example user).
+	EnforcedParams []*string `json:"enforcedParams,omitempty" tf:"enforced_params,omitempty"`
 
 	// List of guardrails applied to this key. This can be used to enforce certain safety or quality checks.
 	Guardrails []*string `json:"guardrails,omitempty" tf:"guardrails,omitempty"`
@@ -54,9 +67,9 @@ type KeyInitParameters struct {
 	// +mapType=granular
 	Metadata map[string]*string `json:"metadata,omitempty" tf:"metadata,omitempty"`
 
-	// Maximum budget per model. This allows setting different budget limits for each model.
-	// +mapType=granular
-	ModelMaxBudget map[string]*float64 `json:"modelMaxBudget,omitempty" tf:"model_max_budget,omitempty"`
+	// JSON string of per-model budget config, e.g. jsonencode({"gpt-4" = {budget_limit = 50.0, time_period = "30d"}}). Each model maps to an object with budget_limit (or max_budget), time_period (or budget_duration), tpm_limit and rpm_limit.
+	// JSON string of per-model budget config (e.g. '{"gpt-4o-mini": {"budget_limit": 50, "time_period": "30d"}}')
+	ModelMaxBudget *string `json:"modelMaxBudget,omitempty" tf:"model_max_budget,omitempty"`
 
 	// Requests per minute limit per model. This allows setting different RPM limits for each model.
 	// +mapType=granular
@@ -69,12 +82,25 @@ type KeyInitParameters struct {
 	// List of models that can be used with this key. This restricts the key to only use the specified models.
 	Models []*string `json:"models,omitempty" tf:"models,omitempty"`
 
+	// ID of the organization this key belongs to.
+	OrganizationID *string `json:"organizationId,omitempty" tf:"organization_id,omitempty"`
+
 	// Permissions associated with this key. This defines what actions are allowed with this key.
 	// +mapType=granular
 	Permissions map[string]*string `json:"permissions,omitempty" tf:"permissions,omitempty"`
 
+	// ID of the project this key belongs to. Changing this forces a new key to be created.
+	ProjectID *string `json:"projectId,omitempty" tf:"project_id,omitempty"`
+
+	// List of prompt IDs this key is allowed to use.
+	Prompts []*string `json:"prompts,omitempty" tf:"prompts,omitempty"`
+
 	// Requests per minute limit for this key. This sets a rate limit based on the number of API calls.
 	RpmLimit *float64 `json:"rpmLimit,omitempty" tf:"rpm_limit,omitempty"`
+
+	// How the RPM limit is enforced. One of guaranteed_throughput, best_effort_throughput or dynamic.
+	// One of 'guaranteed_throughput', 'best_effort_throughput' or 'dynamic'
+	RpmLimitType *string `json:"rpmLimitType,omitempty" tf:"rpm_limit_type,omitempty"`
 
 	// Soft budget limit for this key. This can be used to set a warning threshold before reaching the max_budget.
 	SoftBudget *float64 `json:"softBudget,omitempty" tf:"soft_budget,omitempty"`
@@ -87,6 +113,10 @@ type KeyInitParameters struct {
 
 	// Tokens per minute limit for this key. This sets a rate limit based on the number of tokens processed.
 	TpmLimit *float64 `json:"tpmLimit,omitempty" tf:"tpm_limit,omitempty"`
+
+	// How the TPM limit is enforced. One of guaranteed_throughput, best_effort_throughput or dynamic.
+	// One of 'guaranteed_throughput', 'best_effort_throughput' or 'dynamic'
+	TpmLimitType *string `json:"tpmLimitType,omitempty" tf:"tpm_limit_type,omitempty"`
 
 	// User ID associated with this key. This links the key to a specific user in the LiteLLM system.
 	UserID *string `json:"userId,omitempty" tf:"user_id,omitempty"`
@@ -101,18 +131,31 @@ type KeyObservation struct {
 	// List of allowed cache control directives. This can be used to control caching behavior for requests made with this key.
 	AllowedCacheControls []*string `json:"allowedCacheControls,omitempty" tf:"allowed_cache_controls,omitempty"`
 
+	// List of pass-through routes this key is allowed to call.
+	AllowedPassthroughRoutes []*string `json:"allowedPassthroughRoutes,omitempty" tf:"allowed_passthrough_routes,omitempty"`
+
+	// List of proxy routes this key is allowed to call.
+	AllowedRoutes []*string `json:"allowedRoutes,omitempty" tf:"allowed_routes,omitempty"`
+
 	// Whether this key is blocked. If set to true, the key will be unable to make any requests.
 	Blocked *bool `json:"blocked,omitempty" tf:"blocked,omitempty"`
 
 	// Duration for the budget (e.g., "monthly", "weekly"). This defines the time period for which the max_budget applies.
 	BudgetDuration *string `json:"budgetDuration,omitempty" tf:"budget_duration,omitempty"`
 
+	// ID of a shared budget (created via litellm_budget) to attach to this key.
+	BudgetID *string `json:"budgetId,omitempty" tf:"budget_id,omitempty"`
+
 	// Configuration options for this key. This can be used to set key-specific settings.
 	// +mapType=granular
 	Config map[string]*string `json:"config,omitempty" tf:"config,omitempty"`
 
-	// Duration for which this key is valid. This sets an expiration time for the key.
+	// How long the key stays valid, e.g. "30d" or "12h". The proxy stores this as an absolute expires timestamp. Changing the value resets the expiry to the time of the update plus the new duration; removing it from the configuration leaves the current expiry in place.
+	// How long the key stays valid, e.g. "30d" or "12h". Changing it resets the expiry to the time of the update plus the new duration; removing it leaves the current expiry in place
 	Duration *string `json:"duration,omitempty" tf:"duration,omitempty"`
+
+	// List of request parameters that callers must supply when using this key (for example user).
+	EnforcedParams []*string `json:"enforcedParams,omitempty" tf:"enforced_params,omitempty"`
 
 	// List of guardrails applied to this key. This can be used to enforce certain safety or quality checks.
 	Guardrails []*string `json:"guardrails,omitempty" tf:"guardrails,omitempty"`
@@ -132,9 +175,9 @@ type KeyObservation struct {
 	// +mapType=granular
 	Metadata map[string]*string `json:"metadata,omitempty" tf:"metadata,omitempty"`
 
-	// Maximum budget per model. This allows setting different budget limits for each model.
-	// +mapType=granular
-	ModelMaxBudget map[string]*float64 `json:"modelMaxBudget,omitempty" tf:"model_max_budget,omitempty"`
+	// JSON string of per-model budget config, e.g. jsonencode({"gpt-4" = {budget_limit = 50.0, time_period = "30d"}}). Each model maps to an object with budget_limit (or max_budget), time_period (or budget_duration), tpm_limit and rpm_limit.
+	// JSON string of per-model budget config (e.g. '{"gpt-4o-mini": {"budget_limit": 50, "time_period": "30d"}}')
+	ModelMaxBudget *string `json:"modelMaxBudget,omitempty" tf:"model_max_budget,omitempty"`
 
 	// Requests per minute limit per model. This allows setting different RPM limits for each model.
 	// +mapType=granular
@@ -147,12 +190,30 @@ type KeyObservation struct {
 	// List of models that can be used with this key. This restricts the key to only use the specified models.
 	Models []*string `json:"models,omitempty" tf:"models,omitempty"`
 
+	// ID of the organization this key belongs to.
+	OrganizationID *string `json:"organizationId,omitempty" tf:"organization_id,omitempty"`
+
 	// Permissions associated with this key. This defines what actions are allowed with this key.
 	// +mapType=granular
 	Permissions map[string]*string `json:"permissions,omitempty" tf:"permissions,omitempty"`
 
+	// ID of the project this key belongs to. Changing this forces a new key to be created.
+	ProjectID *string `json:"projectId,omitempty" tf:"project_id,omitempty"`
+
+	// List of prompt IDs this key is allowed to use.
+	Prompts []*string `json:"prompts,omitempty" tf:"prompts,omitempty"`
+
 	// Requests per minute limit for this key. This sets a rate limit based on the number of API calls.
 	RpmLimit *float64 `json:"rpmLimit,omitempty" tf:"rpm_limit,omitempty"`
+
+	// How the RPM limit is enforced. One of guaranteed_throughput, best_effort_throughput or dynamic.
+	// One of 'guaranteed_throughput', 'best_effort_throughput' or 'dynamic'
+	RpmLimitType *string `json:"rpmLimitType,omitempty" tf:"rpm_limit_type,omitempty"`
+
+	// Map of every metadata entry the proxy stores for this key, including entries not declared in metadata, so drift on them is visible on refresh. Entries already exposed as their own attributes (model_rpm_limit, model_tpm_limit, tags, guardrails, enforced_params, allowed_passthrough_routes, rpm_limit_type, tpm_limit_type, prompts) are omitted and non-string values are JSON encoded.
+	// Every metadata entry the proxy stores for this key, including ones not declared in metadata. Entries the provider already exposes as their own attributes (model_rpm_limit, model_tpm_limit, tags, guardrails, enforced_params, allowed_passthrough_routes, rpm_limit_type, tpm_limit_type, prompts) are omitted, and non-string values are JSON encoded
+	// +mapType=granular
+	ServerMetadata map[string]*string `json:"serverMetadata,omitempty" tf:"server_metadata,omitempty"`
 
 	// Soft budget limit for this key. This can be used to set a warning threshold before reaching the max_budget.
 	SoftBudget *float64 `json:"softBudget,omitempty" tf:"soft_budget,omitempty"`
@@ -171,6 +232,10 @@ type KeyObservation struct {
 	// Tokens per minute limit for this key. This sets a rate limit based on the number of tokens processed.
 	TpmLimit *float64 `json:"tpmLimit,omitempty" tf:"tpm_limit,omitempty"`
 
+	// How the TPM limit is enforced. One of guaranteed_throughput, best_effort_throughput or dynamic.
+	// One of 'guaranteed_throughput', 'best_effort_throughput' or 'dynamic'
+	TpmLimitType *string `json:"tpmLimitType,omitempty" tf:"tpm_limit_type,omitempty"`
+
 	// User ID associated with this key. This links the key to a specific user in the LiteLLM system.
 	UserID *string `json:"userId,omitempty" tf:"user_id,omitempty"`
 }
@@ -186,6 +251,14 @@ type KeyParameters struct {
 	// +kubebuilder:validation:Optional
 	AllowedCacheControls []*string `json:"allowedCacheControls,omitempty" tf:"allowed_cache_controls,omitempty"`
 
+	// List of pass-through routes this key is allowed to call.
+	// +kubebuilder:validation:Optional
+	AllowedPassthroughRoutes []*string `json:"allowedPassthroughRoutes,omitempty" tf:"allowed_passthrough_routes,omitempty"`
+
+	// List of proxy routes this key is allowed to call.
+	// +kubebuilder:validation:Optional
+	AllowedRoutes []*string `json:"allowedRoutes,omitempty" tf:"allowed_routes,omitempty"`
+
 	// Whether this key is blocked. If set to true, the key will be unable to make any requests.
 	// +kubebuilder:validation:Optional
 	Blocked *bool `json:"blocked,omitempty" tf:"blocked,omitempty"`
@@ -194,14 +267,23 @@ type KeyParameters struct {
 	// +kubebuilder:validation:Optional
 	BudgetDuration *string `json:"budgetDuration,omitempty" tf:"budget_duration,omitempty"`
 
+	// ID of a shared budget (created via litellm_budget) to attach to this key.
+	// +kubebuilder:validation:Optional
+	BudgetID *string `json:"budgetId,omitempty" tf:"budget_id,omitempty"`
+
 	// Configuration options for this key. This can be used to set key-specific settings.
 	// +kubebuilder:validation:Optional
 	// +mapType=granular
 	Config map[string]*string `json:"config,omitempty" tf:"config,omitempty"`
 
-	// Duration for which this key is valid. This sets an expiration time for the key.
+	// How long the key stays valid, e.g. "30d" or "12h". The proxy stores this as an absolute expires timestamp. Changing the value resets the expiry to the time of the update plus the new duration; removing it from the configuration leaves the current expiry in place.
+	// How long the key stays valid, e.g. "30d" or "12h". Changing it resets the expiry to the time of the update plus the new duration; removing it leaves the current expiry in place
 	// +kubebuilder:validation:Optional
 	Duration *string `json:"duration,omitempty" tf:"duration,omitempty"`
+
+	// List of request parameters that callers must supply when using this key (for example user).
+	// +kubebuilder:validation:Optional
+	EnforcedParams []*string `json:"enforcedParams,omitempty" tf:"enforced_params,omitempty"`
 
 	// List of guardrails applied to this key. This can be used to enforce certain safety or quality checks.
 	// +kubebuilder:validation:Optional
@@ -228,10 +310,10 @@ type KeyParameters struct {
 	// +mapType=granular
 	Metadata map[string]*string `json:"metadata,omitempty" tf:"metadata,omitempty"`
 
-	// Maximum budget per model. This allows setting different budget limits for each model.
+	// JSON string of per-model budget config, e.g. jsonencode({"gpt-4" = {budget_limit = 50.0, time_period = "30d"}}). Each model maps to an object with budget_limit (or max_budget), time_period (or budget_duration), tpm_limit and rpm_limit.
+	// JSON string of per-model budget config (e.g. '{"gpt-4o-mini": {"budget_limit": 50, "time_period": "30d"}}')
 	// +kubebuilder:validation:Optional
-	// +mapType=granular
-	ModelMaxBudget map[string]*float64 `json:"modelMaxBudget,omitempty" tf:"model_max_budget,omitempty"`
+	ModelMaxBudget *string `json:"modelMaxBudget,omitempty" tf:"model_max_budget,omitempty"`
 
 	// Requests per minute limit per model. This allows setting different RPM limits for each model.
 	// +kubebuilder:validation:Optional
@@ -247,14 +329,31 @@ type KeyParameters struct {
 	// +kubebuilder:validation:Optional
 	Models []*string `json:"models,omitempty" tf:"models,omitempty"`
 
+	// ID of the organization this key belongs to.
+	// +kubebuilder:validation:Optional
+	OrganizationID *string `json:"organizationId,omitempty" tf:"organization_id,omitempty"`
+
 	// Permissions associated with this key. This defines what actions are allowed with this key.
 	// +kubebuilder:validation:Optional
 	// +mapType=granular
 	Permissions map[string]*string `json:"permissions,omitempty" tf:"permissions,omitempty"`
 
+	// ID of the project this key belongs to. Changing this forces a new key to be created.
+	// +kubebuilder:validation:Optional
+	ProjectID *string `json:"projectId,omitempty" tf:"project_id,omitempty"`
+
+	// List of prompt IDs this key is allowed to use.
+	// +kubebuilder:validation:Optional
+	Prompts []*string `json:"prompts,omitempty" tf:"prompts,omitempty"`
+
 	// Requests per minute limit for this key. This sets a rate limit based on the number of API calls.
 	// +kubebuilder:validation:Optional
 	RpmLimit *float64 `json:"rpmLimit,omitempty" tf:"rpm_limit,omitempty"`
+
+	// How the RPM limit is enforced. One of guaranteed_throughput, best_effort_throughput or dynamic.
+	// One of 'guaranteed_throughput', 'best_effort_throughput' or 'dynamic'
+	// +kubebuilder:validation:Optional
+	RpmLimitType *string `json:"rpmLimitType,omitempty" tf:"rpm_limit_type,omitempty"`
 
 	// Soft budget limit for this key. This can be used to set a warning threshold before reaching the max_budget.
 	// +kubebuilder:validation:Optional
@@ -271,6 +370,11 @@ type KeyParameters struct {
 	// Tokens per minute limit for this key. This sets a rate limit based on the number of tokens processed.
 	// +kubebuilder:validation:Optional
 	TpmLimit *float64 `json:"tpmLimit,omitempty" tf:"tpm_limit,omitempty"`
+
+	// How the TPM limit is enforced. One of guaranteed_throughput, best_effort_throughput or dynamic.
+	// One of 'guaranteed_throughput', 'best_effort_throughput' or 'dynamic'
+	// +kubebuilder:validation:Optional
+	TpmLimitType *string `json:"tpmLimitType,omitempty" tf:"tpm_limit_type,omitempty"`
 
 	// User ID associated with this key. This links the key to a specific user in the LiteLLM system.
 	// +kubebuilder:validation:Optional
