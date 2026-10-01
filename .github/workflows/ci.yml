@@ -230,7 +230,7 @@ jobs:
         run: make vendor
 
       - name: Build provider packages
-        run: make -j2 build
+        run: make -j2 build.all
 
       - name: Log in to GHCR
         if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/release-'))
